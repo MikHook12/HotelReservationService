@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/// метод для CONTROLLER
+
 @Getter
 @Setter
 @NoArgsConstructor
