@@ -1,0 +1,8 @@
+spring:
+  security:
+    user:
+      password: testpass
+  datasource:
+    url: jdbc:postgresql://localhost:5432/hotel_db
+    username: hotel_user
+    password: hotel_pass

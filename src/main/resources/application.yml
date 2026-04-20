@@ -1,4 +1,10 @@
 spring:
+  # запускается application-local.yml
+  profiles:
+    active: local
+
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: HotelReservationService
   datasource:
@@ -14,5 +20,4 @@ spring:
 #     отключить перед продом
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
