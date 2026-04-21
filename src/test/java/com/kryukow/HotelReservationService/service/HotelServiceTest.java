@@ -1,7 +1,7 @@
 package com.kryukow.HotelReservationService.service;
 
-import com.kryukow.HotelReservationService.dto.HotelCreateUpdateRequest;
-import com.kryukow.HotelReservationService.dto.HotelResponseDto;
+import com.kryukow.HotelReservationService.dto.hotel.HotelCreateUpdateRequest;
+import com.kryukow.HotelReservationService.dto.hotel.HotelResponseDto;
 import com.kryukow.HotelReservationService.dto.PageResponseDto;
 import com.kryukow.HotelReservationService.exception.EntityNotFoundException;
 import com.kryukow.HotelReservationService.mapper.HotelMapper;

@@ -1,9 +1,8 @@
 package com.kryukow.HotelReservationService.controller;
 
-import com.kryukow.HotelReservationService.dto.HotelCreateUpdateRequest;
-import com.kryukow.HotelReservationService.dto.HotelResponseDto;
+import com.kryukow.HotelReservationService.dto.hotel.HotelCreateUpdateRequest;
+import com.kryukow.HotelReservationService.dto.hotel.HotelResponseDto;
 import com.kryukow.HotelReservationService.dto.PageResponseDto;
-import com.kryukow.HotelReservationService.mapper.HotelMapper;
 import com.kryukow.HotelReservationService.service.HotelService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

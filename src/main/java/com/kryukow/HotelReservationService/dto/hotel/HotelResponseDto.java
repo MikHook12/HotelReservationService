@@ -1,9 +1,12 @@
-package com.kryukow.HotelReservationService.dto;
+package com.kryukow.HotelReservationService.dto.hotel;
 
 
+import com.kryukow.HotelReservationService.dto.room.RoomResponseDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 /// метод для CONTROLLER
 
@@ -19,5 +22,5 @@ public class HotelResponseDto {
     private Double distanceFromCityCenter;
     private Double rating;
     private Integer countOfRatings;
-    // потом добавить список комнат с RoomsDto
+    private List<RoomResponseDto> roomsList;
 }

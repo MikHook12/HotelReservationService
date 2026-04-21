@@ -1,4 +1,4 @@
-package com.kryukow.HotelReservationService.dto;
+package com.kryukow.HotelReservationService.dto.hotel;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

@@ -17,6 +17,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 
 public class Room {
 
@@ -41,7 +42,6 @@ public class Room {
     @Column(name = "room_capacity", nullable = false)
     private Integer capacity;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id", nullable = false)
     private Hotel hotel;
@@ -49,7 +49,6 @@ public class Room {
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Booking> bookings = new ArrayList<>();
 
-    /// добавить Bookind
 
 
 
