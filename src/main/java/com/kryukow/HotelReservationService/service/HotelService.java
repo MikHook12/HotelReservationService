@@ -27,7 +27,9 @@ public class HotelService {
     public HotelResponseDto create(HotelCreateUpdateRequest hotelDto) {
         log.info("Создание отеля: {}", hotelDto.getName());
 
-
+        if (repository.existsByName(hotelDto.getName())) {
+            throw new IllegalArgumentException("Отель с названием '" + hotelDto.getName() + "' уже существует");
+        }
 
         Hotel hotel = mapper.toEntity(hotelDto);
         hotel.setRating(0.0);

@@ -35,6 +35,10 @@ public class RoomService {
         Hotel hotel = hotelRepository.findById(request.getHotelId())
                 .orElseThrow(() -> new EntityNotFoundException("Hotel", request.getHotelId()));
 
+        if (roomRepository.existsByHotelIdAndNumber(request.getHotelId(), request.getNumber())) {
+            throw new IllegalArgumentException("Комната с номером " + request.getNumber() + " уже существует в этом отеле");
+        }
+
         Room room = roomMapper.toEntity(request);
         room.setHotel(hotel);
 

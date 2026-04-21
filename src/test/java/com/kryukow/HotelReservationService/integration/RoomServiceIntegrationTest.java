@@ -21,7 +21,6 @@ public class RoomServiceIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private HotelRepository hotelRepository;
 
-    // 🔹 Вспомогательный метод создания отеля
     private Hotel createHotel() {
         Hotel hotel = new Hotel();
         hotel.setName("Test Hotel");
@@ -101,7 +100,6 @@ public class RoomServiceIntegrationTest extends BaseIntegrationTest {
         assertThat(updated.getNumber()).isEqualTo(202);
     }
 
-    // ✅ DELETE
     @Test
     void shouldDeleteRoom() {
         Hotel hotel = createHotel();
@@ -113,7 +111,6 @@ public class RoomServiceIntegrationTest extends BaseIntegrationTest {
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
-    // ❌ DELETE NOT FOUND
     @Test
     void shouldThrowExceptionWhenDeletingNonExistingRoom() {
         assertThatThrownBy(() -> roomService.delete(999L))
