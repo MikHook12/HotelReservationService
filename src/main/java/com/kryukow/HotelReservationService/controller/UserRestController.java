@@ -71,7 +71,6 @@ public class UserRestController {
     }
 
 
-    ///  когда буду подключать Spring Security добавить этот url как hasRole
     @PatchMapping("/{id}/role")
     public void changeRole(
             @PathVariable @Positive Long id,

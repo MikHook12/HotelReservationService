@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,29 +26,8 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
-    @Transactional
-    public UserResponseDto create(UserCreateUpdateRequestDto request) {
-        log.info("Создание пользователя: {}", request.getEmail());
-
-        // ✅ Проверка на дубликат имени
-        if (userRepository.existsByName(request.getName())) {
-            throw new IllegalArgumentException("Пользователь с именем '" + request.getName() + "' уже существует");
-        }
-
-        // ✅ Проверка на дубликат email
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Пользователь с email '" + request.getEmail() + "' уже существует");
-        }
-
-        User user = userMapper.toEntity(request);
-        user.setRole(Role.USER);
-
-        User saved = userRepository.save(user);
-        log.info("Пользователь создан с ID: {}", saved.getId());
-
-        return userMapper.toResponseDto(saved);
-    }
 
     @Transactional
     public UserResponseDto update(Long id, UserCreateUpdateRequestDto request) {
@@ -156,6 +136,30 @@ public class UserService {
                 .toList();
 
         return new PageResponseDto<>(userDtos, userPage);
+    }
+
+    @Transactional
+    public UserResponseDto create(UserCreateUpdateRequestDto request) {
+        log.info("Регистрация нового пользователя: {}", request.getEmail());
+
+        // Проверка на дубликат имени
+        if (userRepository.existsByName(request.getName())) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+
+        // Проверка на дубликат email
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("Email already exists");
+        }
+
+        User user = userMapper.toEntity(request);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(Role.USER);  // новые пользователи всегда регистрируются с ролью USER
+
+        User saved = userRepository.save(user);
+        log.info("Пользователь зарегистрирован с ID: {}", saved.getId());
+
+        return userMapper.toResponseDto(saved);
     }
 
 

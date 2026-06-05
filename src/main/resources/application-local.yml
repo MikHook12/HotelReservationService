@@ -6,3 +6,21 @@ spring:
     url: jdbc:postgresql://localhost:5432/hotel_db
     username: hotel_user
     password: hotel_pass
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  springdoc:
+    swagger-ui:
+      enabled: true
+      path: /swagger-ui.html
+      tryItOutEnabled: true
+      operationsSorter: method
+      tagsSorter: alpha
+    api-docs:
+      enabled: true
+      path: /v3/api-docs
+
+
+# admin2, admin123
