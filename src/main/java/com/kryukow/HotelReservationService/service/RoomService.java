@@ -9,9 +9,11 @@ import com.kryukow.HotelReservationService.model.Hotel;
 import com.kryukow.HotelReservationService.model.Room;
 import com.kryukow.HotelReservationService.repository.HotelRepository;
 import com.kryukow.HotelReservationService.repository.RoomRepository;
+import com.kryukow.HotelReservationService.specification.RoomSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -132,6 +134,38 @@ public class RoomService {
                 .flatMap(booking -> booking.getCheckInDate()
                         .datesUntil(booking.getCheckOutDate()))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponseDto<RoomResponseDto> getAllWithFilters(
+            String id, String name,
+            Double priceMin, Double priceMax,
+            Integer capacity, Long hotelId,
+            LocalDate checkInDate, LocalDate checkOutDate,
+            int page, int size) {
+
+        log.info("Поиск комнат с фильтрацией: id={}, name={}, priceMin={}, priceMax={}, capacity={}, hotelId={}, checkIn={}, checkOut={}, page={}, size={}",
+                id, name, priceMin, priceMax, capacity, hotelId, checkInDate, checkOutDate, page, size);
+
+        if (page < 0) throw new IllegalArgumentException("Page must be >= 0");
+        if (size < 1 || size > 100) throw new IllegalArgumentException("Size must be between 1 and 100");
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Specification<Room> spec = RoomSpecification.filterBy(
+                id, name, priceMin, priceMax, capacity, hotelId, checkInDate, checkOutDate
+        );
+
+        Page<Room> roomPage = roomRepository.findAll(spec, pageable);
+        List<RoomResponseDto> dtos = roomPage.getContent().stream()
+                .map(room -> {
+                    RoomResponseDto dto = roomMapper.toResponseDto(room);
+
+                    return dto;
+                })
+                .toList();
+
+        return new PageResponseDto<>(dtos, roomPage);
     }
 
 }

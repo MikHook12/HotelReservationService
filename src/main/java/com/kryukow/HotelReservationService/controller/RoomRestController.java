@@ -8,8 +8,11 @@ import com.kryukow.HotelReservationService.service.RoomService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/v1/rooms")
@@ -50,6 +53,33 @@ public class RoomRestController {
     public void delete(@PathVariable Long id) {
         log.info("DELETE /api/v1/rooms/{} - delete room", id);  // ← добавить
         roomService.delete(id);
+    }
+
+
+    @GetMapping("/filter")
+    public PageResponseDto<RoomResponseDto> filterRooms(
+            @RequestParam(required = false) String id,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Double priceMin,
+            @RequestParam(required = false) Double priceMax,
+            @RequestParam(required = false) Integer capacity,
+            @RequestParam(required = false) Long hotelId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkInDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOutDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        log.info("GET /api/v1/rooms/filter – фильтрация комнат");
+        if ((checkInDate != null && checkOutDate == null) || (checkInDate == null && checkOutDate != null)) {
+            checkInDate = null;
+            checkOutDate = null;
+            log.warn("Only one date provided. Date filtering disabled.");
+        }
+        return roomService.getAllWithFilters(
+                id, name, priceMin, priceMax, capacity, hotelId,
+                checkInDate, checkOutDate,
+                page, size
+        );
     }
 
 

@@ -31,6 +31,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/register").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").hasRole("ADMIN")
 
                         .requestMatchers(HttpMethod.GET, "/api/v1/hotels/**").authenticated()
 
@@ -49,7 +50,10 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/**").authenticated()
 
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/users/*/role").hasRole("ADMIN"))
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/users/*/role").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/hotels/*/rating").authenticated()
+
+                )
                 .userDetailsService(detailsService)
                 .build();
 

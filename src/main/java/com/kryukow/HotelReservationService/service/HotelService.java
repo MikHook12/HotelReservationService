@@ -7,13 +7,17 @@ import com.kryukow.HotelReservationService.exception.EntityNotFoundException;
 import com.kryukow.HotelReservationService.mapper.HotelMapper;
 import com.kryukow.HotelReservationService.model.Hotel;
 import com.kryukow.HotelReservationService.repository.HotelRepository;
+import com.kryukow.HotelReservationService.specification.HotelSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -101,5 +105,72 @@ public class HotelService {
 
         repository.deleteById(id);
         log.info("Отель с ID {} удалён", id);
+    }
+
+
+    @Transactional
+    public void changeRating(Long id, Double newMark) {
+        log.info("Изменить рейтинг отеля с ID: {}", id);
+
+        Hotel hotel = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Hotel", id));
+        Double rating = hotel.getRating();
+
+        Integer numberOfRatings = hotel.getCountOfRatings();
+        Double currentRating = hotel.getRating();
+
+        if (numberOfRatings == 0) {
+            hotel.setRating(newMark);
+            hotel.setCountOfRatings(1);
+            repository.save(hotel);
+            log.info("Отелю {} присвоена первая оценка: {}", id, newMark);
+            return;
+        }
+
+        double totalRating = currentRating * numberOfRatings;
+        totalRating = totalRating - currentRating + newMark;
+        double newRating = totalRating / numberOfRatings;
+        newRating = Math.round(newRating * 10.0) / 10.0;
+
+        int newNumberOfRatings = numberOfRatings + 1;
+
+        hotel.setRating(newRating);
+        hotel.setCountOfRatings(newNumberOfRatings);
+        repository.save(hotel);
+
+        log.info("Новый рейтинг отеля {}: {}, количество оценок: {}", id, newRating, newNumberOfRatings);
+
+
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponseDto<HotelResponseDto> getAllWithFilters(
+            String id, String name, String title, String city, String address,
+            Double distanceMin, Double distanceMax,
+            Double ratingMin, Double ratingMax,
+            Integer ratingCountMin, Integer ratingCountMax,
+            int page, int size) {
+
+        log.info("Поиск отелей с фильтрацией: id={}, name={}, title={}, city={}, address={}, distanceMin={}, distanceMax={}, ratingMin={}, ratingMax={}, ratingCountMin={}, ratingCountMax={}, page={}, size={}",
+                id, name, title, city, address, distanceMin, distanceMax, ratingMin, ratingMax, ratingCountMin, ratingCountMax, page, size);
+
+        if (page < 0) throw new IllegalArgumentException("Page must be >= 0");
+        if (size < 1 || size > 100) throw new IllegalArgumentException("Size must be between 1 and 100");
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Specification<Hotel> spec = HotelSpecification.filterBy(
+                id, name, title, city, address,
+                distanceMin, distanceMax,
+                ratingMin, ratingMax,
+                ratingCountMin, ratingCountMax
+        );
+
+        Page<Hotel> hotelPage = repository.findAll(spec, pageable);
+        List<HotelResponseDto> dtos = hotelPage.getContent().stream()
+                .map(mapper::toResponseDto)
+                .toList();
+
+        return new PageResponseDto<>(dtos, hotelPage);
     }
 }

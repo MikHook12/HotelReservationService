@@ -53,4 +53,38 @@ public class HotelRestController {
     }
 
 
+
+    @PatchMapping("/{id}/rating")
+    public void changeRating(@PathVariable Long id, @RequestParam Double rating){
+        log.info("PATCH /api/v1/hotels/{}/rating", id);
+        hotelService.changeRating(id, rating);
+
+    }
+
+    @GetMapping("/filter")
+    public PageResponseDto<HotelResponseDto> filterHotels(
+            @RequestParam(required = false) String id,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String address,
+            @RequestParam(required = false) Double distanceMin,
+            @RequestParam(required = false) Double distanceMax,
+            @RequestParam(required = false) Double ratingMin,
+            @RequestParam(required = false) Double ratingMax,
+            @RequestParam(required = false) Integer ratingCountMin,
+            @RequestParam(required = false) Integer ratingCountMax,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        log.info("GET /api/v1/hotels/filter – фильтрация отелей");
+        return hotelService.getAllWithFilters(
+                id, name, title, city, address,
+                distanceMin, distanceMax,
+                ratingMin, ratingMax,
+                ratingCountMin, ratingCountMax,
+                page, size
+        );
+    }
+
 }
