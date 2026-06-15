@@ -3,6 +3,7 @@ package com.kryukow.HotelReservationService.service;
 import com.kryukow.HotelReservationService.dto.booking.BookingCreateRequestDto;
 import com.kryukow.HotelReservationService.dto.booking.BookingResponseDto;
 import com.kryukow.HotelReservationService.dto.booking.BookingUpdateRequestDto;
+import com.kryukow.HotelReservationService.dto.event.BookingCreatedEvent;
 import com.kryukow.HotelReservationService.exception.EntityNotFoundException;
 import com.kryukow.HotelReservationService.model.Booking;
 import com.kryukow.HotelReservationService.model.Room;
@@ -14,8 +15,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +29,8 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
+    private KafkaTemplate<String, Object> kafkaTemplate;
+
 
 
     @Transactional
@@ -59,6 +65,13 @@ public class BookingService {
         Booking saved = bookingRepository.save(booking);
 
         log.info("Бронирование создано с ID: {}", saved.getId());
+        kafkaTemplate.send("booking-events", new BookingCreatedEvent(
+                booking.getUser().getId(),
+                booking.getRoom().getId(),
+                booking.getCheckInDate(),
+                booking.getCheckOutDate(),
+                LocalDateTime.now()
+        ));
 
         return toDto(saved);
     }

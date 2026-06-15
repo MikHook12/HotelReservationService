@@ -1,6 +1,7 @@
 package com.kryukow.HotelReservationService.service;
 
 import com.kryukow.HotelReservationService.dto.PageResponseDto;
+import com.kryukow.HotelReservationService.dto.event.UserRegisteredEvent;
 import com.kryukow.HotelReservationService.dto.user.UserCreateUpdateRequestDto;
 import com.kryukow.HotelReservationService.dto.user.UserResponseDto;
 import com.kryukow.HotelReservationService.exception.EntityNotFoundException;
@@ -13,10 +14,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -27,6 +30,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
 
     @Transactional
@@ -48,7 +52,7 @@ public class UserService {
 
         user.setEmail(request.getEmail());
         user.setName(request.getName());
-        user.setPassword(request.getPassword()); // Не забудь захешировать пароль!
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         User updated = userRepository.save(user);
         log.info("Пользователь обновлён: {}", id);
@@ -158,6 +162,7 @@ public class UserService {
 
         User saved = userRepository.save(user);
         log.info("Пользователь зарегистрирован с ID: {}", saved.getId());
+        kafkaTemplate.send("user-events", new UserRegisteredEvent(saved.getId(), LocalDateTime.now()));
 
         return userMapper.toResponseDto(saved);
     }
