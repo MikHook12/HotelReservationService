@@ -9,6 +9,8 @@ import com.kryukow.HotelReservationService.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,9 +28,10 @@ public class AuthRestController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public UserResponseDto register(@Valid @RequestBody UserCreateUpdateRequestDto request){
+    public ResponseEntity<UserResponseDto> register(@Valid @RequestBody UserCreateUpdateRequestDto request){
         log.info("REST: регистрация нового пользователя: {}", request.getEmail());
-        return userService.create(request);
+        UserResponseDto userDto = userService.create(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
     }
 
 

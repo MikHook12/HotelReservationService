@@ -23,7 +23,7 @@ public class SecurityConfig {
     private final CustomUserDetailsService detailsService;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(httpSecurityHttpBasicConfigurer -> httpSecurityHttpBasicConfigurer
@@ -31,7 +31,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/register").permitAll()
-                        .requestMatchers("/api/v1/admin/statistics/export").permitAll()
+                        .requestMatchers("/api/v1/admin/statistics/export").hasRole("ADMIN")
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").hasRole("ADMIN")
 
                         .requestMatchers(HttpMethod.GET, "/api/v1/hotels/**").authenticated()
@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/rooms/**").hasRole("ADMIN")
 
                         .requestMatchers(HttpMethod.GET, "/api/v1/bookings").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/bookings/{id}").hasRole("ADMIN")
 
                         .requestMatchers(HttpMethod.POST, "/api/v1/bookings").authenticated()
 

@@ -9,6 +9,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,64 +22,95 @@ public class UserRestController {
     private final UserService userService;
 
     @PostMapping
-    public UserResponseDto create(@RequestBody @Valid UserCreateUpdateRequestDto request) {
+    public ResponseEntity<UserResponseDto> create(
+            @RequestBody @Valid UserCreateUpdateRequestDto request
+    ) {
         log.info("REST request: создать пользователя");
 
-        return userService.create(request);
+        UserResponseDto response = userService.create(request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
     @GetMapping
-    public PageResponseDto<UserResponseDto> getAll(@RequestParam(defaultValue = "0") int page,
-                                                   @RequestParam(defaultValue = "20") int size) {
-        log.info("GET /api/v1/rooms?page={}&size={} - get all users", page, size);
-        return userService.getAll(page, size);
+    public ResponseEntity<PageResponseDto<UserResponseDto>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        log.info("GET /api/v1/users?page={}&size={} - get all users", page, size);
+
+        PageResponseDto<UserResponseDto> response =
+                userService.getAll(page, size);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
-    public UserResponseDto getById(@PathVariable @Positive Long id) {
+    public ResponseEntity<UserResponseDto> getById(
+            @PathVariable @Positive Long id
+    ) {
         log.info("REST request: получить пользователя по id={}", id);
 
-        return userService.getById(id);
+        UserResponseDto response = userService.getById(id);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/by-name")
-    public PageResponseDto<UserResponseDto> getByName(
+    public ResponseEntity<PageResponseDto<UserResponseDto>> getByName(
             @RequestParam String name,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        log.info("REST request: поиск пользователей по имени={}, page={}, size={}", name, page, size);
+        log.info(
+                "REST request: поиск пользователей по имени={}, page={}, size={}",
+                name, page, size
+        );
 
-        return userService.getAllByName(name, page, size);
+        PageResponseDto<UserResponseDto> response =
+                userService.getAllByName(name, page, size);
+
+        return ResponseEntity.ok(response);
     }
 
-
-
     @PutMapping("/{id}")
-    public UserResponseDto update(
+    public ResponseEntity<UserResponseDto> update(
             @PathVariable @Positive Long id,
             @RequestBody @Valid UserCreateUpdateRequestDto request
     ) {
         log.info("REST request: обновить пользователя id={}", id);
 
-        return userService.update(id, request);
+        UserResponseDto response =
+                userService.update(id, request);
+
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable @Positive Long id) {
+    public ResponseEntity<Void> delete(
+            @PathVariable @Positive Long id
+    ) {
         log.info("REST request: удалить пользователя id={}", id);
 
         userService.delete(id);
+
+        return ResponseEntity.noContent().build();
     }
 
-
     @PatchMapping("/{id}/role")
-    public void changeRole(
+    public ResponseEntity<Void> changeRole(
             @PathVariable @Positive Long id,
             @RequestParam Role role
     ) {
-        log.info("REST request: изменить роль пользователя id={} на {}", id, role);
+        log.info(
+                "REST request: изменить роль пользователя id={} на {}",
+                id, role
+        );
 
         userService.changeRole(id, role);
+
+        return ResponseEntity.ok().build();
     }
 }

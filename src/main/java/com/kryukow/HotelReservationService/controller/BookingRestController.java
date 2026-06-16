@@ -7,6 +7,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,20 +21,29 @@ public class BookingRestController {
 
 
     @PostMapping
-    public BookingResponseDto create(@RequestBody @Valid BookingCreateRequestDto request) {
+    public ResponseEntity<BookingResponseDto> create(@Valid @RequestBody BookingCreateRequestDto request) {
         log.info("REST: создать бронирование");
 
-        return bookingService.create(request);
+        BookingResponseDto bookingResponseDto = bookingService.create(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(bookingResponseDto);
     }
 
 
     @GetMapping
-    public Page<BookingResponseDto> getAll(
+    public ResponseEntity<Page<BookingResponseDto>> getAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         log.info("REST: получить все бронирования page={}, size={}", page, size);
 
-        return bookingService.getAll(page, size);
+        Page<BookingResponseDto> bookingResponseDto = bookingService.getAll(page, size);
+        return ResponseEntity.status(HttpStatus.OK).body(bookingResponseDto);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<BookingResponseDto> getById(@PathVariable Long id){
+        BookingResponseDto bookingResponseDto = bookingService.getById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(bookingResponseDto);
+    }
+
 }
