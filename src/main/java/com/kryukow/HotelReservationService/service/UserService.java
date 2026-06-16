@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -40,12 +39,10 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User", id));
 
-        // ✅ При обновлении email проверяем, что новый email не принадлежит другому пользователю
         if (!user.getEmail().equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email '" + request.getEmail() + "' уже используется другим пользователем");
         }
 
-        // ✅ При обновлении имени проверяем, что новое имя не принадлежит другому пользователю
         if (!user.getName().equals(request.getName()) && userRepository.existsByName(request.getName())) {
             throw new IllegalArgumentException("Имя '" + request.getName() + "' уже используется другим пользователем");
         }
@@ -64,7 +61,6 @@ public class UserService {
     public PageResponseDto<UserResponseDto> getAll(int page, int size) {
         log.info("Получить всех пользователей: page={}, size={}", page, size);
 
-        // 🔒 Валидация (как у тебя уже сделано в HotelService)
         if (page < 0) {
             throw new IllegalArgumentException("Page index must not be less than zero");
         }
@@ -146,19 +142,17 @@ public class UserService {
     public UserResponseDto create(UserCreateUpdateRequestDto request) {
         log.info("Регистрация нового пользователя: {}", request.getEmail());
 
-        // Проверка на дубликат имени
         if (userRepository.existsByName(request.getName())) {
             throw new IllegalArgumentException("Username already exists");
         }
 
-        // Проверка на дубликат email
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
 
         User user = userMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.USER);  // новые пользователи всегда регистрируются с ролью USER
+        user.setRole(Role.USER);
 
         User saved = userRepository.save(user);
         log.info("Пользователь зарегистрирован с ID: {}", saved.getId());

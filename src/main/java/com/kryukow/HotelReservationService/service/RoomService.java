@@ -101,7 +101,6 @@ public class RoomService {
         Hotel hotel = hotelRepository.findById(request.getHotelId())
                 .orElseThrow(() -> new EntityNotFoundException("Hotel", request.getHotelId()));
 
-        // ⚠️ MapStruct не обновляет существующий объект — делаем руками
         room.setName(request.getName());
         room.setDescription(request.getDescription());
         room.setNumber(request.getNumber());

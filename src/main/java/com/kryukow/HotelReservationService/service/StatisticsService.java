@@ -24,10 +24,8 @@ public class StatisticsService {
              OutputStreamWriter writer = new OutputStreamWriter(out);
              CSVWriter csvWriter = new CSVWriter(writer)) {
             
-            // Заголовки
             csvWriter.writeNext(new String[]{"id", "eventType", "userId", "roomId", "checkInDate", "checkOutDate", "timestamp"});
             
-            // Данные
             for (StatisticEvent event : events) {
                 String userId = (String) event.getPayload().getOrDefault("userId", "");
                 String roomId = (String) event.getPayload().getOrDefault("roomId", "");

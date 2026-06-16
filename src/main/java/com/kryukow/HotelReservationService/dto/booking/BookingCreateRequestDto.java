@@ -17,7 +17,7 @@ public class BookingCreateRequestDto {
     private Long roomId;
 
     @NotNull(message = "ID пользователя обязателен")
-    private Long userId;   // позже можно будет брать из контекста Security
+    private Long userId;
 
     @NotNull(message = "Дата заезда обязательна")
     @Future(message = "Дата заезда должна быть в будущем")

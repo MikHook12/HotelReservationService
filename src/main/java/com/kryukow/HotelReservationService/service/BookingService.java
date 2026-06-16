@@ -2,7 +2,6 @@ package com.kryukow.HotelReservationService.service;
 
 import com.kryukow.HotelReservationService.dto.booking.BookingCreateRequestDto;
 import com.kryukow.HotelReservationService.dto.booking.BookingResponseDto;
-import com.kryukow.HotelReservationService.dto.booking.BookingUpdateRequestDto;
 import com.kryukow.HotelReservationService.dto.event.BookingCreatedEvent;
 import com.kryukow.HotelReservationService.exception.EntityNotFoundException;
 import com.kryukow.HotelReservationService.model.Booking;

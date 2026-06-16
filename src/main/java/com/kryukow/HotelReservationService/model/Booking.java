@@ -33,9 +33,4 @@ public class Booking {
     @Column(name = "check_out_date", nullable = false)
     private LocalDate checkOutDate;
 
-
-
-/// в BookindService реализовывать валидацию даты checkInDate < checkOutDate
-
-
 }
