@@ -110,7 +110,9 @@ public class HotelService {
         if (!rooms.isEmpty() && availabilityRepository.hasBookings(rooms.stream().map(Room::getId).toList())) {
             throw new BookingHistoryConflictException("hotel");
         }
-        availabilityRepository.deleteUnbookedRooms(id);
+        // Bulk DELETE would leave the locked Room entities managed and still referencing
+        // the removed Hotel. Remove those entities explicitly before their parent.
+        availabilityRepository.deleteAll(rooms);
         repository.delete(hotel);
     }
 

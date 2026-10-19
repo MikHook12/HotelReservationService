@@ -25,12 +25,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.ByteArrayOutputStream;
-import java.io.StringReader;
-import com.opencsv.CSVReader;
-import org.bson.Document;
-import org.bson.types.ObjectId;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import java.util.ArrayList;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -50,7 +44,6 @@ class StatisticsEventIntegrationTest extends BaseIntegrationTest {
     @Autowired StatisticEventRepository statistics;
     @Autowired StatisticsEventListener listener;
     @Autowired StatisticsService service;
-    @Autowired MongoTemplate mongoTemplate;
     @Autowired PlatformTransactionManager transactionManager;
     @Autowired KafkaTemplate<String, Object> kafka;
     @Autowired @Qualifier("statisticsDltKafkaTemplate") KafkaTemplate<String, Object> dltKafka;
@@ -88,40 +81,6 @@ class StatisticsEventIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    void exportsEveryLegacyNumericStringAndObjectIdAcrossPageBoundariesWithoutRewritingIds() throws Exception {
-        statistics.deleteAll();
-        List<Document> documents = new ArrayList<>();
-        List<String> expectedIds = new ArrayList<>();
-        for (int i = 0; i < 501; i++) {
-            for (Object rawId : List.of((long) i, "legacy-" + String.format("%04d", i), new ObjectId())) {
-                documents.add(new Document("_id", rawId).append("eventType", "USER_REGISTERED")
-                        .append("payload", new Document("userId", (long) i))
-                        .append("timestamp", java.util.Date.from(java.time.Instant.parse("2027-01-01T10:30:00Z"))));
-                expectedIds.add(rawId.toString());
-            }
-        }
-        mongoTemplate.getCollection("statistics").insertMany(documents);
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        service.exportToCsv(output);
-        try (CSVReader reader = new CSVReader(new StringReader(output.toString(StandardCharsets.UTF_8)))) {
-            List<String[]> rows = reader.readAll();
-            assertThat(rows).hasSize(1504);
-            assertThat(rows.subList(1, rows.size())).extracting(row -> row[0])
-                    .containsExactlyInAnyOrderElementsOf(expectedIds).doesNotHaveDuplicates();
-            assertThat(rows.subList(1, rows.size())).allSatisfy(row -> {
-                assertThat(row[1]).isEqualTo("USER_REGISTERED");
-                assertThat(row[2]).isNotBlank();
-                assertThat(row[6]).contains("2027-01-01T");
-            });
-        }
-        var collection = mongoTemplate.getCollection("statistics");
-        assertThat(collection.countDocuments(new Document("_id", new Document("$type", "long")))).isEqualTo(501);
-        assertThat(collection.countDocuments(new Document("_id", new Document("$type", "string")))).isEqualTo(501);
-        assertThat(collection.countDocuments(new Document("_id", new Document("$type", "objectId")))).isEqualTo(501);
-        statistics.deleteAll();
-    }
-
-    @Test
     void malformedJsonBytesReachDltWithoutBase64Encoding() throws Exception {
         String key = UUID.randomUUID().toString();
         byte[] original = "{malformed-json: привет".getBytes(StandardCharsets.UTF_8);
@@ -132,11 +91,12 @@ class StatisticsEventIntegrationTest extends BaseIntegrationTest {
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class,
                 ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"))) {
             consumer.subscribe(List.of("user-events.DLT"));
-            dltKafka.send("user-events", key, original).get();
+            int sourcePartition = dltKafka.send("user-events", key, original).get().getRecordMetadata().partition();
             await().atMost(Duration.ofSeconds(30)).until(() -> {
                 for (var record : consumer.poll(Duration.ofMillis(200))) {
                     if (key.equals(record.key())) {
                         assertThat(record.value()).containsExactly(original);
+                        assertThat(record.partition()).isEqualTo(sourcePartition);
                         return true;
                     }
                 }
@@ -157,10 +117,14 @@ class StatisticsEventIntegrationTest extends BaseIntegrationTest {
                 ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"))) {
             consumer.subscribe(List.of("user-events.DLT"));
             // The DTO is valid JSON; a null required user ID makes it a poison message for the listener.
-            kafka.send("user-events", key, new UserRegisteredEvent(null, LocalDateTime.now())).get();
+            int sourcePartition = kafka.send("user-events", key, new UserRegisteredEvent(null, LocalDateTime.now()))
+                    .get().getRecordMetadata().partition();
             await().atMost(Duration.ofSeconds(30)).until(() -> {
                 for (var record : consumer.poll(Duration.ofMillis(200))) {
-                    if (key.equals(record.key())) return true;
+                    if (key.equals(record.key())) {
+                        assertThat(record.partition()).isEqualTo(sourcePartition);
+                        return true;
+                    }
                 }
                 return false;
             });

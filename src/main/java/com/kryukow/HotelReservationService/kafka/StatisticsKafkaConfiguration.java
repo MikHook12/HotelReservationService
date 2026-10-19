@@ -1,5 +1,6 @@
 package com.kryukow.HotelReservationService.kafka;
 
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -58,11 +59,18 @@ public class StatisticsKafkaConfiguration {
     }
 
     @Bean
-    public DefaultErrorHandler statisticsErrorHandler(
+    public DeadLetterPublishingRecoverer statisticsDeadLetterRecoverer(
             @Qualifier("statisticsDltKafkaTemplate") KafkaTemplate<String, Object> dltKafkaTemplate) {
-        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(dltKafkaTemplate);
+        // The library default suffix can change between versions; use our provisioned topic explicitly.
+        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(dltKafkaTemplate,
+                (record, exception) -> new TopicPartition(record.topic() + ".DLT", record.partition()));
         // Never commit an offset if the DLT send failed. DLT retains the original event key.
         recoverer.setFailIfSendResultIsError(true);
-        return new DefaultErrorHandler(recoverer, new FixedBackOff(1000L, 2L));
+        return recoverer;
+    }
+
+    @Bean
+    public DefaultErrorHandler statisticsErrorHandler(DeadLetterPublishingRecoverer statisticsDeadLetterRecoverer) {
+        return new DefaultErrorHandler(statisticsDeadLetterRecoverer, new FixedBackOff(1000L, 2L));
     }
 }

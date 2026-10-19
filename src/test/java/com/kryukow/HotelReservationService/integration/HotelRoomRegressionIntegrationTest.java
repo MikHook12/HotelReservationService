@@ -107,6 +107,36 @@ class HotelRoomRegressionIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    void deletionWithInitializedRoomsPreservesUnrelatedManagedChanges() {
+        Room first = fixture(false);
+        Long hotelId = first.getHotel().getId();
+        Room unrelated = fixture(false);
+        Long unrelatedHotelId = unrelated.getHotel().getId();
+        Hotel hotel = em.find(Hotel.class, hotelId);
+        Room sibling = new Room();
+        sibling.setHotel(hotel); sibling.setName("Sibling"); sibling.setNumber(102);
+        sibling.setDescription("Description"); sibling.setCapacity(2); sibling.setPrice(new BigDecimal("120.00"));
+        em.persist(sibling);
+        em.flush(); em.clear();
+
+        hotel = em.find(Hotel.class, hotelId);
+        assertThat(hotel.getRooms()).hasSize(2); // Initialize the graph before the deletion command.
+        Hotel otherHotel = em.find(Hotel.class, unrelatedHotelId);
+        otherHotel.setTitle("Pending unrelated change");
+
+        hotels.delete(hotelId);
+
+        // The command must track removals rather than clear/detach the caller's context.
+        assertThat(em.contains(otherHotel)).isTrue();
+        em.flush(); em.clear();
+        assertThat(em.find(Hotel.class, hotelId)).isNull();
+        assertThat(em.find(Room.class, first.getId())).isNull();
+        assertThat(em.find(Room.class, sibling.getId())).isNull();
+        assertThat(em.find(Hotel.class, unrelatedHotelId).getTitle()).isEqualTo("Pending unrelated change");
+        assertThat(em.find(Room.class, unrelated.getId())).isNotNull();
+    }
+
+    @Test
     void ratingAggregateSurvivesReloadAndRejectsStaleVersion() {
         Room room = fixture(false);
         Long id = room.getHotel().getId();

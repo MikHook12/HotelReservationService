@@ -3,7 +3,6 @@ package com.kryukow.HotelReservationService.repository;
 import com.kryukow.HotelReservationService.model.Room;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
@@ -37,7 +36,6 @@ public interface RoomAvailabilityRepository extends Repository<Room, Long> {
     @Query("select r from Room r where r.hotel.id = :hotelId order by r.id")
     List<Room> lockByHotelId(@Param("hotelId") Long hotelId);
 
-    @Modifying
-    @Query("delete from Room r where r.hotel.id = :hotelId")
-    void deleteUnbookedRooms(@Param("hotelId") Long hotelId);
+    /** Entity removals keep already-loaded rooms consistent with the persistence context. */
+    void deleteAll(Iterable<? extends Room> rooms);
 }

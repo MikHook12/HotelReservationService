@@ -121,6 +121,23 @@ class HotelServiceTest {
                 .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class)
                 .hasMessageContaining("booking history");
         verify(repository, never()).delete(any(Hotel.class));
-        verify(availabilityRepository, never()).deleteUnbookedRooms(any());
+        verify(availabilityRepository, never()).deleteAll(any());
     }
+    @Test
+    void unbookedHotelRemovesManagedRoomsBeforeTheirParent() {
+        Hotel hotel = new Hotel();
+        com.kryukow.HotelReservationService.model.Room room = new com.kryukow.HotelReservationService.model.Room();
+        room.setId(2L);
+        List<com.kryukow.HotelReservationService.model.Room> children = List.of(room);
+        when(repository.lockById(1L)).thenReturn(Optional.of(hotel));
+        when(availabilityRepository.lockByHotelId(1L)).thenReturn(children);
+        when(availabilityRepository.hasBookings(List.of(2L))).thenReturn(false);
+
+        service.delete(1L);
+
+        var order = inOrder(availabilityRepository, repository);
+        order.verify(availabilityRepository).deleteAll(children);
+        order.verify(repository).delete(hotel);
+    }
+
 }
