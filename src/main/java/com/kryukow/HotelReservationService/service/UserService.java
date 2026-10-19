@@ -1,25 +1,25 @@
 package com.kryukow.HotelReservationService.service;
 
 import com.kryukow.HotelReservationService.dto.PageResponseDto;
-import com.kryukow.HotelReservationService.dto.event.UserRegisteredEvent;
 import com.kryukow.HotelReservationService.dto.user.UserCreateUpdateRequestDto;
 import com.kryukow.HotelReservationService.dto.user.UserResponseDto;
 import com.kryukow.HotelReservationService.exception.EntityNotFoundException;
+import com.kryukow.HotelReservationService.exception.ResourceConflictException;
 import com.kryukow.HotelReservationService.mapper.UserMapper;
 import com.kryukow.HotelReservationService.model.Role;
 import com.kryukow.HotelReservationService.model.User;
 import com.kryukow.HotelReservationService.repository.UserRepository;
+import java.nio.charset.StandardCharsets;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -29,22 +29,23 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final DomainEventPublisher domainEventPublisher;
 
 
     @Transactional
     public UserResponseDto update(Long id, UserCreateUpdateRequestDto request) {
+        validatePasswordLength(request.getPassword());
         log.info("Обновление пользователя с ID: {}", id);
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User", id));
 
         if (!user.getEmail().equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email '" + request.getEmail() + "' уже используется другим пользователем");
+            throw new ResourceConflictException("Email '" + request.getEmail() + "' уже используется другим пользователем");
         }
 
         if (!user.getName().equals(request.getName()) && userRepository.existsByName(request.getName())) {
-            throw new IllegalArgumentException("Имя '" + request.getName() + "' уже используется другим пользователем");
+            throw new ResourceConflictException("Имя '" + request.getName() + "' уже используется другим пользователем");
         }
 
         user.setEmail(request.getEmail());
@@ -140,14 +141,15 @@ public class UserService {
 
     @Transactional
     public UserResponseDto create(UserCreateUpdateRequestDto request) {
+        validatePasswordLength(request.getPassword());
         log.info("Регистрация нового пользователя: {}", request.getEmail());
 
         if (userRepository.existsByName(request.getName())) {
-            throw new IllegalArgumentException("Username already exists");
+            throw new ResourceConflictException("Username already exists");
         }
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new ResourceConflictException("Email already exists");
         }
 
         User user = userMapper.toEntity(request);
@@ -156,10 +158,15 @@ public class UserService {
 
         User saved = userRepository.save(user);
         log.info("Пользователь зарегистрирован с ID: {}", saved.getId());
-        kafkaTemplate.send("user-events", new UserRegisteredEvent(saved.getId(), LocalDateTime.now()));
+        domainEventPublisher.publishUserRegistered(saved.getId());
 
         return userMapper.toResponseDto(saved);
     }
 
 
+    private void validatePasswordLength(String password) {
+        if (password != null && password.getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new IllegalArgumentException("Password must not exceed 72 UTF-8 bytes");
+        }
+    }
 }

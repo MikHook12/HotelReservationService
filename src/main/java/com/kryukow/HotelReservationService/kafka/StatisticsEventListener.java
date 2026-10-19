@@ -8,6 +8,8 @@ import com.kryukow.HotelReservationService.repository.StatisticEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -21,10 +23,11 @@ public class StatisticsEventListener {
 
 
     @KafkaListener(topics = "user-events", groupId = "statistics-group")
-    public void handlerUserRegistered(UserRegisteredEvent event){
+    public void handlerUserRegistered(UserRegisteredEvent event, @Header(KafkaHeaders.RECEIVED_KEY) String eventId) {
         log.info("Received user registered event: {}", event);
 
         StatisticEvent stat = new StatisticEvent();
+        stat.setId(requireEventId(eventId));
         stat.setEventType(EventType.USER_REGISTERED);
         stat.setPayload(Map.of("userId", event.userId()));
         stat.setTimestamp(event.localDateTime());
@@ -34,19 +37,27 @@ public class StatisticsEventListener {
 
 
     @KafkaListener(topics = "booking-events", groupId = "statistics-group")
-    public void handlerBookingRegistered(BookingCreatedEvent event){
+    public void handlerBookingRegistered(BookingCreatedEvent event, @Header(KafkaHeaders.RECEIVED_KEY) String eventId) {
         log.info("Received booking created event: {}", event);
 
         StatisticEvent stat = new StatisticEvent();
+        stat.setId(requireEventId(eventId));
         stat.setEventType(EventType.BOOKING_CREATED);
         stat.setPayload(Map.of(
                 "userId", event.userId(),
                 "roomId", event.roomId(),
-                "checkInDate", event.checkInDate(),
-                "checkOutDate", event.checkOutDate())
+                "checkInDate", event.checkInDate().toString(),
+                "checkOutDate", event.checkOutDate().toString())
         );
         stat.setTimestamp(event.timestamp());
 
         statisticEventRepository.save(stat);
+    }
+
+    private String requireEventId(String eventId) {
+        if (eventId == null || eventId.isBlank()) {
+            throw new IllegalArgumentException("Statistics event must have an outbox ID as Kafka key");
+        }
+        return eventId;
     }
 }

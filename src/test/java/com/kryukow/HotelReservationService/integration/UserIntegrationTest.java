@@ -7,38 +7,19 @@ import com.kryukow.HotelReservationService.exception.EntityNotFoundException;
 import com.kryukow.HotelReservationService.model.Role;
 import com.kryukow.HotelReservationService.service.UserService;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Testcontainers
-@SpringBootTest
 @Transactional
-class UserServiceIntegrationTest {
-
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16")
-            .withDatabaseName("test_db")
-            .withUsername("test_user")
-            .withPassword("test_pass");
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+class UserIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private UserService userService;
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-    }
 
     private UserCreateUpdateRequestDto createValidRequest() {
         UserCreateUpdateRequestDto request = new UserCreateUpdateRequestDto();
@@ -78,8 +59,8 @@ class UserServiceIntegrationTest {
 
         // when & then
         assertThatThrownBy(() -> userService.create(request2))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Пользователь с именем 'testuser' уже существует");
+                .isInstanceOf(com.kryukow.HotelReservationService.exception.ResourceConflictException.class)
+                .hasMessageContaining("Username already exists");
     }
 
     @Test
@@ -94,8 +75,8 @@ class UserServiceIntegrationTest {
 
         // when & then
         assertThatThrownBy(() -> userService.create(request2))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Пользователь с email 'test@example.com' уже существует");
+                .isInstanceOf(com.kryukow.HotelReservationService.exception.ResourceConflictException.class)
+                .hasMessageContaining("Email already exists");
     }
 
     // ========== GET BY ID ==========
@@ -207,7 +188,7 @@ class UserServiceIntegrationTest {
         updateRequest.setEmail("user1@test.com");
 
         assertThatThrownBy(() -> userService.update(user2.getId(), updateRequest))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(com.kryukow.HotelReservationService.exception.ResourceConflictException.class)
                 .hasMessageContaining("Email 'user1@test.com' уже используется");
     }
 
@@ -230,7 +211,7 @@ class UserServiceIntegrationTest {
         updateRequest.setEmail("email2@test.com");
 
         assertThatThrownBy(() -> userService.update(user2.getId(), updateRequest))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(com.kryukow.HotelReservationService.exception.ResourceConflictException.class)
                 .hasMessageContaining("Имя 'name1' уже используется");
     }
 
@@ -292,7 +273,7 @@ class UserServiceIntegrationTest {
         userService.create(request1);
 
         UserCreateUpdateRequestDto request2 = createValidRequest();
-        request2.setName("john");
+        request2.setName("john2");
         request2.setEmail("john2@test.com");
         userService.create(request2);
 
@@ -305,9 +286,9 @@ class UserServiceIntegrationTest {
         PageResponseDto<UserResponseDto> result = userService.getAllByName("john", 0, 10);
 
         // then
-        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent()).allMatch(user -> user.getName().equals("john"));
-        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getTotalElements()).isEqualTo(1);
     }
 
     @Test

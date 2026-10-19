@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +31,12 @@ class UserServiceTest {
 
     @Mock
     private UserMapper userMapper;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private DomainEventPublisher domainEventPublisher;
 
     @InjectMocks
     private UserService userService;
@@ -61,6 +68,22 @@ class UserServiceTest {
         return dto;
     }
 
+    @Test
+    void createRejectsPasswordOverBcryptByteLimitBeforeCallingEncoder() {
+        UserCreateUpdateRequestDto request = createRequest("john", "john@test.com", "я".repeat(37));
+        assertThatThrownBy(() -> userService.create(request))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("72 UTF-8 bytes");
+        verifyNoInteractions(passwordEncoder, userRepository, userMapper, domainEventPublisher);
+    }
+
+    @Test
+    void updateRejectsPasswordOverBcryptByteLimitBeforeCallingEncoder() {
+        UserCreateUpdateRequestDto request = createRequest("john", "john@test.com", "я".repeat(37));
+        assertThatThrownBy(() -> userService.update(1L, request))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("72 UTF-8 bytes");
+        verifyNoInteractions(passwordEncoder, userRepository, userMapper, domainEventPublisher);
+    }
+
     // ========== CREATE ==========
 
     @Test
@@ -74,6 +97,7 @@ class UserServiceTest {
         when(userRepository.existsByName(request.getName())).thenReturn(false);
         when(userRepository.existsByEmail(request.getEmail())).thenReturn(false);
         when(userMapper.toEntity(request)).thenReturn(user);
+        when(passwordEncoder.encode("password123")).thenReturn("hashed-password");
         when(userRepository.save(user)).thenReturn(savedUser);
         when(userMapper.toResponseDto(savedUser)).thenReturn(responseDto);
 
@@ -86,6 +110,8 @@ class UserServiceTest {
         assertThat(result.getName()).isEqualTo("john");
         assertThat(result.getRole()).isEqualTo(Role.USER);
         verify(userRepository).save(user);
+        assertThat(user.getPassword()).isEqualTo("hashed-password");
+        verify(domainEventPublisher).publishUserRegistered(1L);
     }
 
     @Test
@@ -96,10 +122,11 @@ class UserServiceTest {
 
         // when & then
         assertThatThrownBy(() -> userService.create(request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Пользователь с именем 'existing' уже существует");
+                .isInstanceOf(com.kryukow.HotelReservationService.exception.ResourceConflictException.class)
+                .hasMessageContaining("Username already exists");
 
         verify(userRepository, never()).save(any());
+        verifyNoInteractions(domainEventPublisher);
     }
 
     @Test
@@ -111,10 +138,11 @@ class UserServiceTest {
 
         // when & then
         assertThatThrownBy(() -> userService.create(request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Пользователь с email 'existing@test.com' уже существует");
+                .isInstanceOf(com.kryukow.HotelReservationService.exception.ResourceConflictException.class)
+                .hasMessageContaining("Email already exists");
 
         verify(userRepository, never()).save(any());
+        verifyNoInteractions(domainEventPublisher);
     }
 
     // ========== GET BY ID ==========
@@ -213,6 +241,7 @@ class UserServiceTest {
         when(userRepository.existsByEmail("updated@test.com")).thenReturn(false);
         when(userRepository.existsByName("updatedName")).thenReturn(false);
         when(userRepository.save(existingUser)).thenReturn(updatedUser);
+        when(passwordEncoder.encode("newPassword")).thenReturn("updated-hash");
         when(userMapper.toResponseDto(updatedUser)).thenReturn(responseDto);
 
         // when
@@ -223,6 +252,7 @@ class UserServiceTest {
         assertThat(result.getEmail()).isEqualTo("updated@test.com");
         assertThat(existingUser.getName()).isEqualTo("updatedName");
         assertThat(existingUser.getEmail()).isEqualTo("updated@test.com");
+        assertThat(existingUser.getPassword()).isEqualTo("updated-hash");
     }
 
     @Test
@@ -251,7 +281,7 @@ class UserServiceTest {
 
         // when & then
         assertThatThrownBy(() -> userService.update(id, request))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(com.kryukow.HotelReservationService.exception.ResourceConflictException.class)
                 .hasMessageContaining("Email 'existing@test.com' уже используется");
     }
 

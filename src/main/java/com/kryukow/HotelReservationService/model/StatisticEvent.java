@@ -1,6 +1,6 @@
 package com.kryukow.HotelReservationService.model;
 
-import jakarta.persistence.Id;
+import org.springframework.data.annotation.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +17,7 @@ import java.util.Map;
 @Document(collection = "statistics")
 public class StatisticEvent {
     @Id
-    private Long Id;
+    private String id;
     private EventType eventType;
     private Map<String, Object> payload;
     private LocalDateTime timestamp;
