@@ -14,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/v1/rooms")
@@ -82,10 +83,10 @@ public class RoomRestController {
 
     @GetMapping("/filter")
     public ResponseEntity<PageResponseDto<RoomResponseDto>> filterRooms(
-            @RequestParam(required = false) String id,
+            @RequestParam(required = false) Long id,
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) Double priceMin,
-            @RequestParam(required = false) Double priceMax,
+            @RequestParam(required = false) BigDecimal priceMin,
+            @RequestParam(required = false) BigDecimal priceMax,
             @RequestParam(required = false) Integer capacity,
             @RequestParam(required = false) Long hotelId,
             @RequestParam(required = false)
@@ -98,15 +99,6 @@ public class RoomRestController {
             @RequestParam(defaultValue = "20") int size) {
 
         log.info("GET /api/v1/rooms/filter - фильтрация комнат");
-
-        if ((checkInDate != null && checkOutDate == null)
-                || (checkInDate == null && checkOutDate != null)) {
-
-            checkInDate = null;
-            checkOutDate = null;
-
-            log.warn("Only one date provided. Date filtering disabled.");
-        }
 
         return ResponseEntity.ok(
                 roomService.getAllWithFilters(

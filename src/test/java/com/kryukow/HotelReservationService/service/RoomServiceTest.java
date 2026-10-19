@@ -16,6 +16,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
+import java.util.Optional;
+import com.kryukow.HotelReservationService.repository.RoomAvailabilityRepository;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,6 +35,9 @@ class RoomServiceTest {
     @Mock
     private RoomMapper roomMapper;
 
+    @Mock private RoomAvailabilityService availabilityService;
+    @Mock private RoomAvailabilityRepository availabilityRepository;
+
     @InjectMocks
     private RoomService roomService;
 
@@ -41,7 +47,7 @@ class RoomServiceTest {
         int page = 0;
         int size = 10;
         Long hotelId = 1L;
-        Double priceMin = 100.0;
+        BigDecimal priceMin = new BigDecimal("100.00");
         Integer capacity = 2;
 
         Room room = new Room();
@@ -78,5 +84,26 @@ class RoomServiceTest {
                 null, null, 0, 0))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Size must be between 1 and 100");
+    }
+
+    @Test
+    void roomWithBookingHistoryCannotBeDeleted() {
+        when(availabilityRepository.lockById(1L)).thenReturn(Optional.of(new Room()));
+        when(availabilityRepository.hasBookings(List.of(1L))).thenReturn(true);
+        assertThatThrownBy(() -> roomService.delete(1L))
+                .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class)
+                .hasMessageContaining("booking history");
+        verify(roomRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void filteredResultsPopulateAvailabilityAsOtherEndpointsDo() {
+        Room room = new Room();
+        RoomResponseDto dto = new RoomResponseDto();
+        when(roomRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(room)));
+        when(roomMapper.toResponseDto(room)).thenReturn(dto);
+        roomService.getAllWithFilters(null, null, null, null, null, null, null, null, 0, 20);
+        verify(availabilityService).populate(List.of(dto));
     }
 }

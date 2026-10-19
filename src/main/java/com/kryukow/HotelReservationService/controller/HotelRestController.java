@@ -91,7 +91,7 @@ public class HotelRestController {
 
     @GetMapping("/filter")
     public ResponseEntity<PageResponseDto<HotelResponseDto>> filterHotels(
-            @RequestParam(required = false) String id,
+            @RequestParam(required = false) Long id,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String city,

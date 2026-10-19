@@ -6,26 +6,28 @@ import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RoomSpecification {
 
     public static Specification<Room> filterBy(
-            String id,
+            Long id,
             String name,
-            Double priceMin,
-            Double priceMax,
+            BigDecimal priceMin,
+            BigDecimal priceMax,
             Integer capacity,
             Long hotelId,
             LocalDate checkInDate,
             LocalDate checkOutDate
     ) {
+        FilterValidation.room(id, priceMin, priceMax, capacity, hotelId, checkInDate, checkOutDate);
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (id != null && !id.isBlank()) {
-                predicates.add(cb.equal(root.get("id"), Long.parseLong(id)));
+            if (id != null) {
+                predicates.add(cb.equal(root.get("id"), id));
             }
 
             if (name != null && !name.isBlank()) {
@@ -33,11 +35,11 @@ public class RoomSpecification {
             }
 
             if (priceMin != null) {
-                predicates.add(cb.ge(root.get("price"), priceMin));
+                predicates.add(cb.greaterThanOrEqualTo(root.get("price"), priceMin));
             }
 
             if (priceMax != null) {
-                predicates.add(cb.le(root.get("price"), priceMax));
+                predicates.add(cb.lessThanOrEqualTo(root.get("price"), priceMax));
             }
 
             if (capacity != null) {
@@ -61,15 +63,7 @@ public class RoomSpecification {
                 predicates.add(cb.not(cb.exists(bookingSubquery)));
 
                 
-                Subquery<LocalDate> unavailableSubquery = query.subquery(LocalDate.class);
-                Root<Room> roomRoot = unavailableSubquery.from(Room.class);
-                Join<Object, Object> unavailableJoin = roomRoot.join("unavailableDates");
-                unavailableSubquery.select(unavailableJoin.get("unavailableDate"));
-                unavailableSubquery.where(
-                        cb.equal(roomRoot, root),
-                        cb.between(unavailableJoin.get("unavailableDate"), checkInDate, checkOutDate.minusDays(1))
-                );
-                predicates.add(cb.not(cb.exists(unavailableSubquery)));
+
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

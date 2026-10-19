@@ -4,6 +4,7 @@ package com.kryukow.HotelReservationService.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,7 +43,13 @@ public class Hotel {
     @Column(name = "count_of_ratings", nullable = false)
     private Integer countOfRatings = 0;
 
-    @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Column(name = "rating_sum", nullable = false, precision = 19, scale = 4)
+    private BigDecimal ratingSum = BigDecimal.ZERO;
+
+    @Version
+    private Long version;
+
+    @OneToMany(mappedBy = "hotel", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     private List<Room> rooms = new ArrayList<>();
 
 

@@ -22,5 +22,5 @@ public class HotelResponseDto {
     private Double distanceFromCityCenter;
     private Double rating;
     private Integer countOfRatings;
-    private List<RoomResponseDto> roomsList;
+    private List<RoomResponseDto> roomsList = new java.util.ArrayList<>();
 }

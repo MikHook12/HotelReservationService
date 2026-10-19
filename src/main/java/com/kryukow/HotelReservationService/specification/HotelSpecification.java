@@ -8,16 +8,17 @@ import java.util.List;
 
 public class HotelSpecification {
 
-    public static Specification<Hotel> filterBy(String id, String name, String title,
+    public static Specification<Hotel> filterBy(Long id, String name, String title,
                                                 String city, String address,
                                                 Double distanceMin, Double distanceMax,
                                                 Double ratingMin, Double ratingMax,
                                                 Integer ratingCountMin, Integer ratingCountMax) {
+        FilterValidation.hotel(id, distanceMin, distanceMax, ratingMin, ratingMax, ratingCountMin, ratingCountMax);
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (id != null && !id.isBlank()) {
-                predicates.add(criteriaBuilder.equal(root.get("id"), Long.parseLong(id)));
+            if (id != null) {
+                predicates.add(criteriaBuilder.equal(root.get("id"), id));
             }
             if (name != null && !name.isBlank()) {
                 predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("name")),

@@ -4,6 +4,7 @@ import com.kryukow.HotelReservationService.dto.hotel.HotelCreateUpdateRequest;
 import com.kryukow.HotelReservationService.dto.hotel.HotelResponseDto;
 import com.kryukow.HotelReservationService.dto.PageResponseDto;
 import com.kryukow.HotelReservationService.exception.EntityNotFoundException;
+import com.kryukow.HotelReservationService.exception.ResourceConflictException;
 import com.kryukow.HotelReservationService.mapper.HotelMapper;
 import com.kryukow.HotelReservationService.model.Hotel;
 import com.kryukow.HotelReservationService.repository.HotelRepository;
@@ -18,6 +19,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import com.kryukow.HotelReservationService.model.Room;
+import com.kryukow.HotelReservationService.repository.RoomAvailabilityRepository;
+import com.kryukow.HotelReservationService.exception.BookingHistoryConflictException;
 
 @Service
 @RequiredArgsConstructor
@@ -26,13 +32,15 @@ public class HotelService {
 
     private final HotelRepository repository;
     private final HotelMapper mapper;
+    private final RoomAvailabilityRepository availabilityRepository;
+    private final RoomAvailabilityService availabilityService;
 
     @Transactional
     public HotelResponseDto create(HotelCreateUpdateRequest hotelDto) {
         log.info("Создание отеля: {}", hotelDto.getName());
 
         if (repository.existsByName(hotelDto.getName())) {
-            throw new IllegalArgumentException("Отель с названием '" + hotelDto.getName() + "' уже существует");
+            throw new ResourceConflictException("Отель с названием '" + hotelDto.getName() + "' уже существует");
         }
 
         Hotel hotel = mapper.toEntity(hotelDto);
@@ -42,7 +50,7 @@ public class HotelService {
         Hotel saved = repository.save(hotel);
         log.info("Отель создан с ID: {}", saved.getId());
 
-        return mapper.toResponseDto(saved);
+        return responses(List.of(saved)).get(0);
     }
 
     @Transactional(readOnly = true)
@@ -50,7 +58,7 @@ public class HotelService {
         log.info("Получить отель по ID {}", id);
         Hotel hotel = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Hotel", id));
-        return mapper.toResponseDto(hotel);
+        return responses(List.of(hotel)).get(0);
     }
 
     @Transactional(readOnly = true)
@@ -68,10 +76,7 @@ public class HotelService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Hotel> hotelPage = repository.findAll(pageable);
 
-        var hotelDtos = hotelPage.getContent()
-                .stream()
-                .map(mapper::toResponseDto)
-                .toList();
+        var hotelDtos = responses(hotelPage.getContent());
 
         return new PageResponseDto<>(hotelDtos, hotelPage);
     }
@@ -92,60 +97,55 @@ public class HotelService {
         Hotel updated = repository.save(hotel);
         log.info("Отель с ID {} обновлён", id);
 
-        return mapper.toResponseDto(updated);
+        return responses(List.of(updated)).get(0);
     }
 
     @Transactional
     public void delete(Long id) {
         log.info("Удалить отель с ID: {}", id);
 
-        if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("Hotel", id);
+        Hotel hotel = repository.lockById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Hotel", id));
+        List<Room> rooms = availabilityRepository.lockByHotelId(id);
+        if (!rooms.isEmpty() && availabilityRepository.hasBookings(rooms.stream().map(Room::getId).toList())) {
+            throw new BookingHistoryConflictException("hotel");
         }
-
-        repository.deleteById(id);
-        log.info("Отель с ID {} удалён", id);
+        availabilityRepository.deleteUnbookedRooms(id);
+        repository.delete(hotel);
     }
-
 
     @Transactional
     public void changeRating(Long id, Double newMark) {
-        log.info("Изменить рейтинг отеля с ID: {}", id);
-
+        if (newMark == null || !Double.isFinite(newMark) || newMark < 1 || newMark > 5)
+            throw new IllegalArgumentException("Rating must be between 1 and 5");
+        BigDecimal mark;
+        try {
+            mark = BigDecimal.valueOf(newMark).setScale(4, RoundingMode.UNNECESSARY);
+        } catch (ArithmeticException ex) {
+            throw new IllegalArgumentException("Rating supports at most 4 decimal places");
+        }
         Hotel hotel = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Hotel", id));
-        Double rating = hotel.getRating();
-
-        Integer numberOfRatings = hotel.getCountOfRatings();
-        Double currentRating = hotel.getRating();
-
-        if (numberOfRatings == 0) {
-            hotel.setRating(newMark);
-            hotel.setCountOfRatings(1);
-            repository.save(hotel);
-            log.info("Отелю {} присвоена первая оценка: {}", id, newMark);
-            return;
-        }
-
-        double totalRating = currentRating * numberOfRatings;
-        totalRating = totalRating - currentRating + newMark;
-        double newRating = totalRating / numberOfRatings;
-        newRating = Math.round(newRating * 10.0) / 10.0;
-
-        int newNumberOfRatings = numberOfRatings + 1;
-
-        hotel.setRating(newRating);
-        hotel.setCountOfRatings(newNumberOfRatings);
+        BigDecimal sum = hotel.getRatingSum().add(mark);
+        int count = Math.addExact(hotel.getCountOfRatings(), 1);
+        hotel.setRatingSum(sum);
+        hotel.setCountOfRatings(count);
+        hotel.setRating(sum.divide(BigDecimal.valueOf(count), 1, RoundingMode.HALF_UP).doubleValue());
         repository.save(hotel);
+    }
 
-        log.info("Новый рейтинг отеля {}: {}, количество оценок: {}", id, newRating, newNumberOfRatings);
-
-
+    private List<HotelResponseDto> responses(List<Hotel> hotels) {
+        if (hotels.isEmpty()) return List.of();
+        // Fetch collections after pagination: no collection-fetch pagination or per-hotel SELECTs.
+        repository.fetchRooms(hotels.stream().map(Hotel::getId).toList());
+        List<HotelResponseDto> dtos = hotels.stream().map(mapper::toResponseDto).toList();
+        availabilityService.populate(dtos.stream().flatMap(dto -> dto.getRoomsList().stream()).toList());
+        return dtos;
     }
 
     @Transactional(readOnly = true)
     public PageResponseDto<HotelResponseDto> getAllWithFilters(
-            String id, String name, String title, String city, String address,
+            Long id, String name, String title, String city, String address,
             Double distanceMin, Double distanceMax,
             Double ratingMin, Double ratingMax,
             Integer ratingCountMin, Integer ratingCountMax,
@@ -167,9 +167,7 @@ public class HotelService {
         );
 
         Page<Hotel> hotelPage = repository.findAll(spec, pageable);
-        List<HotelResponseDto> dtos = hotelPage.getContent().stream()
-                .map(mapper::toResponseDto)
-                .toList();
+        List<HotelResponseDto> dtos = responses(hotelPage.getContent());
 
         return new PageResponseDto<>(dtos, hotelPage);
     }

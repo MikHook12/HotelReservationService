@@ -6,36 +6,22 @@ import com.kryukow.HotelReservationService.exception.EntityNotFoundException;
 import com.kryukow.HotelReservationService.service.HotelService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Testcontainers
-@SpringBootTest
-class HotelServiceIntegrationTest {
-
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16")
-            .withDatabaseName("test_db")
-            .withUsername("test_user")
-            .withPassword("test_pass");
+@Transactional
+@Rollback
+class HotelServiceIntegrationTest extends BaseIntegrationTest {
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     private HotelService hotelService;
-
-    // 👇 Подменяем datasource Spring'а на контейнер
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-    }
 
     private HotelCreateUpdateRequest createValidRequest() {
         HotelCreateUpdateRequest request = new HotelCreateUpdateRequest();
@@ -60,6 +46,9 @@ class HotelServiceIntegrationTest {
         HotelResponseDto created = hotelService.create(request);
 
         assertNotNull(created.getId());
+
+        entityManager.flush();
+        entityManager.clear();
 
         // getById
         HotelResponseDto found = hotelService.getById(created.getId());
@@ -88,7 +77,10 @@ class HotelServiceIntegrationTest {
 
         HotelResponseDto updated = hotelService.update(created.getId(), update);
 
+        entityManager.flush();
+        entityManager.clear();
         assertEquals("New", updated.getName());
+        assertEquals("New", hotelService.getById(created.getId()).getName());
     }
 
     @Test
@@ -98,6 +90,8 @@ class HotelServiceIntegrationTest {
 
         HotelResponseDto created = hotelService.create(request);
         hotelService.delete(created.getId());
+        entityManager.flush();
+        entityManager.clear();
 
         assertThrows(EntityNotFoundException.class,
                 () -> hotelService.getById(created.getId()));
@@ -106,6 +100,6 @@ class HotelServiceIntegrationTest {
     @Test
     void getById_whenNotFound_shouldThrowException() {
         assertThrows(EntityNotFoundException.class,
-                () -> hotelService.getById(999L));
+                () -> hotelService.getById(Long.MAX_VALUE));
     }
 }

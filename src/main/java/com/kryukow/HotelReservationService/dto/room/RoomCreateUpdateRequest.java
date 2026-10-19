@@ -1,5 +1,6 @@
 package com.kryukow.HotelReservationService.dto.room;
 
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -27,6 +28,7 @@ public class RoomCreateUpdateRequest {
 
     @NotNull(message = "Цена обязательна")
     @Positive(message = "Цена должна быть положительной")
+    @Digits(integer = 36, fraction = 2, message = "Цена допускает не более двух знаков после запятой")
     private BigDecimal price;
 
     @NotNull(message = "Вместимость обязательна")

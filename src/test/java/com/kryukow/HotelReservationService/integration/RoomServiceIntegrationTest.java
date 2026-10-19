@@ -8,12 +8,21 @@ import com.kryukow.HotelReservationService.repository.HotelRepository;
 import com.kryukow.HotelReservationService.service.RoomService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.*;
 
+@Transactional
+@Rollback
 public class RoomServiceIntegrationTest extends BaseIntegrationTest {
+    @PersistenceContext
+    private EntityManager entityManager;
+
 
     @Autowired
     private RoomService roomService;
@@ -67,6 +76,8 @@ public class RoomServiceIntegrationTest extends BaseIntegrationTest {
         Hotel hotel = createHotel();
         RoomResponseDto created = roomService.create(createRoomRequest(hotel.getId()));
 
+        entityManager.flush();
+        entityManager.clear();
         RoomResponseDto found = roomService.getById(created.getId());
 
         assertThat(found.getId()).isEqualTo(created.getId());
@@ -76,7 +87,7 @@ public class RoomServiceIntegrationTest extends BaseIntegrationTest {
     // ❌ NOT FOUND
     @Test
     void shouldThrowExceptionWhenRoomNotFound() {
-        assertThatThrownBy(() -> roomService.getById(999L))
+        assertThatThrownBy(() -> roomService.getById(Long.MAX_VALUE))
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
@@ -96,6 +107,11 @@ public class RoomServiceIntegrationTest extends BaseIntegrationTest {
 
         RoomResponseDto updated = roomService.update(created.getId(), updateRequest);
 
+        entityManager.flush();
+        entityManager.clear();
+        RoomResponseDto persisted = roomService.getById(created.getId());
+        assertThat(persisted.getName()).isEqualTo("Updated Room");
+        assertThat(persisted.getNumber()).isEqualTo(202);
         assertThat(updated.getName()).isEqualTo("Updated Room");
         assertThat(updated.getNumber()).isEqualTo(202);
     }
@@ -106,6 +122,8 @@ public class RoomServiceIntegrationTest extends BaseIntegrationTest {
         RoomResponseDto created = roomService.create(createRoomRequest(hotel.getId()));
 
         roomService.delete(created.getId());
+        entityManager.flush();
+        entityManager.clear();
 
         assertThatThrownBy(() -> roomService.getById(created.getId()))
                 .isInstanceOf(EntityNotFoundException.class);
@@ -113,7 +131,7 @@ public class RoomServiceIntegrationTest extends BaseIntegrationTest {
 
     @Test
     void shouldThrowExceptionWhenDeletingNonExistingRoom() {
-        assertThatThrownBy(() -> roomService.delete(999L))
+        assertThatThrownBy(() -> roomService.delete(Long.MAX_VALUE))
                 .isInstanceOf(EntityNotFoundException.class);
     }
 }

@@ -5,6 +5,9 @@ import com.kryukow.HotelReservationService.dto.PageResponseDto;
 import com.kryukow.HotelReservationService.mapper.HotelMapper;
 import com.kryukow.HotelReservationService.model.Hotel;
 import com.kryukow.HotelReservationService.repository.HotelRepository;
+import com.kryukow.HotelReservationService.repository.RoomAvailabilityRepository;
+import java.math.BigDecimal;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -31,6 +34,9 @@ class HotelServiceTest {
 
     @Mock
     private HotelMapper mapper;
+
+    @Mock private RoomAvailabilityService availabilityService;
+    @Mock private RoomAvailabilityRepository availabilityRepository;
 
     @InjectMocks
     private HotelService service;
@@ -80,5 +86,41 @@ class HotelServiceTest {
                 0, 0))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Size must be between 1 and 100");
+    }
+
+    @Test
+    void ratingsUseExactSumAndNewCountRatherThanRoundedAverage() {
+        Hotel hotel = new Hotel();
+        when(repository.findById(1L)).thenReturn(Optional.of(hotel));
+        service.changeRating(1L, 1.0);
+        service.changeRating(1L, 2.0);
+        service.changeRating(1L, 2.0);
+        service.changeRating(1L, 5.0);
+        assertThat(hotel.getRatingSum()).isEqualByComparingTo("10");
+        assertThat(hotel.getCountOfRatings()).isEqualTo(4);
+        assertThat(hotel.getRating()).isEqualTo(2.5);
+    }
+
+    @Test
+    void invalidRatingsNeverWrite() {
+        for (Double mark : new Double[]{null, 0.0, 5.01, Double.NaN, Double.POSITIVE_INFINITY, 1.12345}) {
+            assertThatThrownBy(() -> service.changeRating(1L, mark)).isInstanceOf(IllegalArgumentException.class);
+        }
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void hotelWithBookingHistoryCannotBeDeleted() {
+        Hotel hotel = new Hotel();
+        com.kryukow.HotelReservationService.model.Room room = new com.kryukow.HotelReservationService.model.Room();
+        room.setId(2L);
+        when(repository.lockById(1L)).thenReturn(Optional.of(hotel));
+        when(availabilityRepository.lockByHotelId(1L)).thenReturn(List.of(room));
+        when(availabilityRepository.hasBookings(List.of(2L))).thenReturn(true);
+        assertThatThrownBy(() -> service.delete(1L))
+                .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class)
+                .hasMessageContaining("booking history");
+        verify(repository, never()).delete(any(Hotel.class));
+        verify(availabilityRepository, never()).deleteUnbookedRooms(any());
     }
 }

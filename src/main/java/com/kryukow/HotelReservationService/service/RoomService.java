@@ -4,6 +4,7 @@ import com.kryukow.HotelReservationService.dto.PageResponseDto;
 import com.kryukow.HotelReservationService.dto.room.RoomCreateUpdateRequest;
 import com.kryukow.HotelReservationService.dto.room.RoomResponseDto;
 import com.kryukow.HotelReservationService.exception.EntityNotFoundException;
+import com.kryukow.HotelReservationService.exception.ResourceConflictException;
 import com.kryukow.HotelReservationService.mapper.RoomMapper;
 import com.kryukow.HotelReservationService.model.Hotel;
 import com.kryukow.HotelReservationService.model.Room;
@@ -18,6 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
+import com.kryukow.HotelReservationService.repository.RoomAvailabilityRepository;
+import com.kryukow.HotelReservationService.exception.BookingHistoryConflictException;
 import java.util.List;
 
 @Service
@@ -28,17 +32,19 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final HotelRepository hotelRepository;
     private final RoomMapper roomMapper;
+    private final RoomAvailabilityRepository availabilityRepository;
+    private final RoomAvailabilityService availabilityService;
 
 
     @Transactional
     public RoomResponseDto create(RoomCreateUpdateRequest request) {
         log.info("Создание комнаты {}", request.getName());
 
-        Hotel hotel = hotelRepository.findById(request.getHotelId())
+        Hotel hotel = hotelRepository.lockById(request.getHotelId())
                 .orElseThrow(() -> new EntityNotFoundException("Hotel", request.getHotelId()));
 
         if (roomRepository.existsByHotelIdAndNumber(request.getHotelId(), request.getNumber())) {
-            throw new IllegalArgumentException("Комната с номером " + request.getNumber() + " уже существует в этом отеле");
+            throw new ResourceConflictException("Комната с номером " + request.getNumber() + " уже существует в этом отеле");
         }
 
         Room room = roomMapper.toEntity(request);
@@ -47,7 +53,7 @@ public class RoomService {
         Room saved = roomRepository.save(room);
 
         RoomResponseDto dto = roomMapper.toResponseDto(saved);
-        dto.setUnavailableDates(getUnavailableDates(saved));
+        availabilityService.populate(List.of(dto));
 
         return dto;
     }
@@ -60,7 +66,7 @@ public class RoomService {
                 .orElseThrow(() -> new EntityNotFoundException("Room", id));
 
         RoomResponseDto dto = roomMapper.toResponseDto(room);
-        dto.setUnavailableDates(getUnavailableDates(room));
+        availabilityService.populate(List.of(dto));
 
         return dto;
     }
@@ -79,14 +85,8 @@ public class RoomService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Room> roomPage = roomRepository.findAll(pageable);
 
-        List<RoomResponseDto> content = roomPage.getContent()
-                .stream()
-                .map(room -> {
-                    RoomResponseDto dto = roomMapper.toResponseDto(room);
-                    dto.setUnavailableDates(getUnavailableDates(room));
-                    return dto;
-                })
-                .toList();
+        List<RoomResponseDto> content = roomPage.getContent().stream().map(roomMapper::toResponseDto).toList();
+        availabilityService.populate(content);
 
         return new PageResponseDto<>(content, roomPage);
     }
@@ -98,7 +98,7 @@ public class RoomService {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Room", id));
 
-        Hotel hotel = hotelRepository.findById(request.getHotelId())
+        Hotel hotel = hotelRepository.lockById(request.getHotelId())
                 .orElseThrow(() -> new EntityNotFoundException("Hotel", request.getHotelId()));
 
         room.setName(request.getName());
@@ -111,7 +111,7 @@ public class RoomService {
         Room updated = roomRepository.save(room);
 
         RoomResponseDto dto = roomMapper.toResponseDto(updated);
-        dto.setUnavailableDates(getUnavailableDates(updated));
+        availabilityService.populate(List.of(dto));
 
         return dto;
     }
@@ -120,25 +120,19 @@ public class RoomService {
     public void delete(Long id) {
         log.info("Удаление комнаты {}", id);
 
-        if (!roomRepository.existsById(id)) {
-            throw new EntityNotFoundException("Room", id);
+        availabilityRepository.lockById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Room", id));
+        if (availabilityRepository.hasBookings(List.of(id))) {
+            throw new BookingHistoryConflictException("room");
         }
-
         roomRepository.deleteById(id);
     }
 
 
-    private List<LocalDate> getUnavailableDates(Room room) {
-        return room.getBookings().stream()
-                .flatMap(booking -> booking.getCheckInDate()
-                        .datesUntil(booking.getCheckOutDate()))
-                .toList();
-    }
-
     @Transactional(readOnly = true)
     public PageResponseDto<RoomResponseDto> getAllWithFilters(
-            String id, String name,
-            Double priceMin, Double priceMax,
+            Long id, String name,
+            BigDecimal priceMin, BigDecimal priceMax,
             Integer capacity, Long hotelId,
             LocalDate checkInDate, LocalDate checkOutDate,
             int page, int size) {
@@ -156,13 +150,8 @@ public class RoomService {
         );
 
         Page<Room> roomPage = roomRepository.findAll(spec, pageable);
-        List<RoomResponseDto> dtos = roomPage.getContent().stream()
-                .map(room -> {
-                    RoomResponseDto dto = roomMapper.toResponseDto(room);
-
-                    return dto;
-                })
-                .toList();
+        List<RoomResponseDto> dtos = roomPage.getContent().stream().map(roomMapper::toResponseDto).toList();
+        availabilityService.populate(dtos);
 
         return new PageResponseDto<>(dtos, roomPage);
     }

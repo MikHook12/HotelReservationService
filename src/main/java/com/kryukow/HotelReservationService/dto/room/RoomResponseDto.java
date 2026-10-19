@@ -21,4 +21,7 @@ public class RoomResponseDto {
     private Integer capacity;
     private List<LocalDate> unavailableDates;
     private Long hotelId;
+    /** Availability window: from inclusive, until exclusive; UTC calendar dates. */
+    private LocalDate availabilityFrom;
+    private LocalDate availabilityUntil;
 }
