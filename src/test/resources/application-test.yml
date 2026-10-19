@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    password: test_pass
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/hotel_test
+  kafka:
+    listener:
+      auto-startup: false
+  jpa:
+    hibernate:
+      ddl-auto: validate
+app:
+  bootstrap:
+    admin:
+      enabled: false
+  outbox:
+    enabled: false

@@ -1,10 +1,9 @@
 package com.kryukow.HotelReservationService;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import com.kryukow.HotelReservationService.integration.BaseIntegrationTest;
 
-@SpringBootTest
-class HotelReservationServiceApplicationTests {
+class HotelReservationServiceApplicationTests extends BaseIntegrationTest {
 
 	@Test
 	void contextLoads() {
