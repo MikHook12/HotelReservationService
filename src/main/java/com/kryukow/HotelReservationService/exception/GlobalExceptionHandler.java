@@ -1,7 +1,6 @@
 package com.kryukow.HotelReservationService.exception;
 
 import com.kryukow.HotelReservationService.dto.ErrorResponse;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -75,12 +74,12 @@ public class GlobalExceptionHandler {
             MethodArgumentTypeMismatchException ex,
             WebRequest request
     ) {
-        log.error("400 - Type mismatch: {}", ex.getMessage());
+        log.warn("400 - Type mismatch: parameter={}", ex.getName());
 
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",
-                "Invalid parameter: " + ex.getName() + " should be of type " + ex.getRequiredType().getSimpleName(),
+                "Invalid parameter: " + ex.getName() + " should be of type " + (ex.getRequiredType() == null ? "valid value" : ex.getRequiredType().getSimpleName()),
                 request.getDescription(false),
                 LocalDateTime.now()
         );
@@ -96,7 +95,7 @@ public class GlobalExceptionHandler {
             HttpMessageNotReadableException ex,
             WebRequest request
     ) {
-        log.error("400 - Malformed JSON: {}", ex.getMessage());
+        log.warn("400 - Malformed JSON: path={}, type={}", request.getDescription(false), ex.getClass().getSimpleName());
 
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
@@ -117,17 +116,52 @@ public class GlobalExceptionHandler {
             IllegalArgumentException ex,
             WebRequest request
     ) {
-        log.error("400 - Illegal argument: {}", ex.getMessage());
+        log.warn("400 - Illegal argument: path={}, type={}", request.getDescription(false), ex.getClass().getSimpleName());
 
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",
-                ex.getMessage(),
+                "Invalid request parameters",
                 request.getDescription(false),
                 LocalDateTime.now()
         );
 
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({ResourceConflictException.class,
+            org.springframework.dao.DataIntegrityViolationException.class,
+            org.springframework.dao.OptimisticLockingFailureException.class,
+            jakarta.persistence.OptimisticLockException.class,
+            org.springframework.dao.PessimisticLockingFailureException.class,
+            jakarta.persistence.PessimisticLockException.class,
+            jakarta.persistence.LockTimeoutException.class})
+    public ResponseEntity<ErrorResponse> handleConflict(Exception ex, WebRequest request) {
+        // Never include SQL, constraint details or persistence internals in the response.
+        return error(HttpStatus.CONFLICT, "Request conflicts with the current resource state", request);
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleForbidden(Exception ex, WebRequest request) {
+        return error(HttpStatus.FORBIDDEN, "Access denied", request);
+    }
+
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthenticated(Exception ex, WebRequest request) {
+        return error(HttpStatus.UNAUTHORIZED, "Authentication required", request);
+    }
+
+    @ExceptionHandler({jakarta.validation.ConstraintViolationException.class,
+            org.springframework.web.method.annotation.HandlerMethodValidationException.class,
+            org.springframework.web.bind.MissingServletRequestParameterException.class,
+            org.springframework.validation.BindException.class})
+    public ResponseEntity<ErrorResponse> handleInvalidParameters(Exception ex, WebRequest request) {
+        return error(HttpStatus.BAD_REQUEST, "Invalid request parameters", request);
+    }
+
+    private ResponseEntity<ErrorResponse> error(HttpStatus status, String message, WebRequest request) {
+        return ResponseEntity.status(status).body(new ErrorResponse(status.value(), status.getReasonPhrase(),
+                message, request.getDescription(false), LocalDateTime.now()));
     }
 
     /**
@@ -138,7 +172,7 @@ public class GlobalExceptionHandler {
             Exception ex,
             WebRequest request
     ) {
-        log.error("500 - Internal server error: ", ex);
+        log.error("500 - Internal server error: path={}, type={}", request.getDescription(false), ex.getClass().getName());
 
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),

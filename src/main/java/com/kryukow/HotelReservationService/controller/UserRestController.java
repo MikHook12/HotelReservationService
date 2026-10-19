@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserRestController {
 
     private final UserService userService;
+    private final com.kryukow.HotelReservationService.security.CurrentUser currentUser;
 
     @PostMapping
     public ResponseEntity<UserResponseDto> create(
@@ -53,6 +54,7 @@ public class UserRestController {
     ) {
         log.info("REST request: получить пользователя по id={}", id);
 
+        currentUser.requireOwnerOrAdmin(id);
         UserResponseDto response = userService.getById(id);
 
         return ResponseEntity.ok(response);
@@ -82,6 +84,7 @@ public class UserRestController {
     ) {
         log.info("REST request: обновить пользователя id={}", id);
 
+        currentUser.requireOwnerOrAdmin(id);
         UserResponseDto response =
                 userService.update(id, request);
 
@@ -94,6 +97,7 @@ public class UserRestController {
     ) {
         log.info("REST request: удалить пользователя id={}", id);
 
+        currentUser.requireOwnerOrAdmin(id);
         userService.delete(id);
 
         return ResponseEntity.noContent().build();

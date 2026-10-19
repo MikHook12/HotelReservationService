@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,12 +24,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(new org.springframework.security.web.csrf.CookieCsrfTokenRepository())
+                        .requireCsrfProtectionMatcher(new com.kryukow.HotelReservationService.security.BrowserCsrfMatcher()))
                 .httpBasic(httpSecurityHttpBasicConfigurer -> httpSecurityHttpBasicConfigurer
                         .realmName("Hotel Reservation API"))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/auth/csrf").permitAll()
                         .requestMatchers("/api/v1/admin/statistics/export").hasRole("ADMIN")
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").hasRole("ADMIN")
 
@@ -45,15 +47,20 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/v1/rooms/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/rooms/**").hasRole("ADMIN")
 
-                        .requestMatchers(HttpMethod.GET, "/api/v1/bookings").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/bookings/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/bookings").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/bookings/{id}").authenticated()
 
                         .requestMatchers(HttpMethod.POST, "/api/v1/bookings").authenticated()
 
-                        .requestMatchers(HttpMethod.GET, "/api/v1/users/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users", "/api/v1/users/by-name").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users/{id}").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/users/{id}").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/users/{id}").hasRole("ADMIN")
 
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/users/*/role").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/hotels/*/rating").authenticated()
+                        .anyRequest().denyAll()
 
                 )
                 .userDetailsService(detailsService)

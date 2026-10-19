@@ -1,9 +1,8 @@
 package com.kryukow.HotelReservationService.dto.user;
 
-import com.kryukow.HotelReservationService.model.Role;
+import com.kryukow.HotelReservationService.security.BcryptPassword;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +18,8 @@ public class UserCreateUpdateRequestDto {
     private String name;
 
     @NotBlank(message = "Пароль не должен быть пустым")
-    @Size(min = 6, max = 100, message = "Пароль должен содержать от 6 до 100 символов")
+    @Size(min = 6, max = 72, message = "Пароль должен содержать от 6 до 72 символов")
+    @BcryptPassword
     private String password;
 
     @NotBlank(message = "Email не должен быть пустым")

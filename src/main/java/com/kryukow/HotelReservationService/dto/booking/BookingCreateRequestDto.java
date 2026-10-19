@@ -14,9 +14,11 @@ import java.time.LocalDate;
 public class BookingCreateRequestDto {
 
     @NotNull(message = "ID комнаты обязателен")
+    @jakarta.validation.constraints.Positive
     private Long roomId;
 
-    @NotNull(message = "ID пользователя обязателен")
+    // Optional legacy field; ownership always comes from authentication.
+    @jakarta.validation.constraints.Positive
     private Long userId;
 
     @NotNull(message = "Дата заезда обязательна")
