@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PropertyPhoto } from "./property-photo";
+import { nightsLabel } from "@/lib/format";
 import type { HotelCard as HotelCardData } from "@/lib/types";
 
 type HotelCardProps = {
@@ -68,7 +69,7 @@ export function HotelCard({ hotel, href }: HotelCardProps) {
       <div className="hotel-copy">
         <div className="hotel-meta">
           <span>{hotel.cityName}</span>
-          {hotel.isDemo ? <span className="badge">Демо-отель</span> : null}
+          {hotel.isDemo ? <span className="badge">Демо-предложение</span> : null}
         </div>
         <h2>
           <Link href={href}>{hotel.name}</Link>
@@ -79,13 +80,13 @@ export function HotelCard({ hotel, href }: HotelCardProps) {
             {hasPrice ? (
               <>
                 <p className="price">
-                  <span>от </span>
+                  <span>{hotel.isDemo ? "Учебная цена от " : "от "}</span>
                   {nightlyPrice}
                   <small> / ночь</small>
                 </p>
                 {hotel.fromPrice.nights > 1 ? (
                   <p className="muted price-total">
-                    {totalPrice} за {hotel.fromPrice.nights} ночей
+                    {totalPrice} за {nightsLabel(hotel.fromPrice.nights)}
                   </p>
                 ) : null}
               </>

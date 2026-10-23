@@ -77,7 +77,6 @@ export function parseSearch(
 }
 export function hotelHref(slug: string, values: SearchValues) {
   const q = new URLSearchParams(values);
-  q.delete("city");
   q.delete("page");
   return `/demo/hotels/${encodeURIComponent(slug)}${q.size ? `?${q}` : ""}`;
 }

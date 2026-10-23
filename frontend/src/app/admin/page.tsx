@@ -48,7 +48,8 @@ export default function AdminPage() {
       {data && (
         <>
           <p>Всего: {data.totalElements}</p>
-          <div className="admin-table">
+          <p className="muted admin-table-hint">Таблицу можно прокрутить по горизонтали.</p>
+          <div className="admin-table" role="region" aria-label="Список отелей" tabIndex={0}>
             <table>
               <thead>
                 <tr>

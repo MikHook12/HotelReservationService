@@ -4,3 +4,8 @@ export function rubles(value: string): string {
   const [whole, fraction] = value.split(".");
   return `${BigInt(whole).toLocaleString("ru-RU")}${fraction === "00" ? "" : `,${fraction}`} ₽`;
 }
+
+export function nightsLabel(count: number): string {
+  const form = new Intl.PluralRules("ru").select(count);
+  return `${count} ${form === "one" ? "ночь" : form === "few" ? "ночи" : "ночей"}`;
+}

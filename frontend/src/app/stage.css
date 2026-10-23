@@ -623,11 +623,22 @@ body > .demo-notice {
 }
 .admin-table {
   overflow-x: auto;
+  max-width: 100%;
   text-align: left;
 }
 .admin-table table {
   width: 100%;
+  min-width: 620px;
   border-collapse: collapse;
+}
+.admin-table-hint {
+  display: none;
+}
+.admin-shell fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 .admin-table th,
 .admin-table td {
@@ -673,6 +684,9 @@ body > .demo-notice {
   }
 }
 @media (max-width: 650px) {
+  .admin-table-hint {
+    display: block;
+  }
   .admin-grid {
     grid-template-columns: minmax(0, 1fr);
   }

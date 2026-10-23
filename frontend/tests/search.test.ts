@@ -37,7 +37,9 @@ test("hotel and pagination links retain selection and reset irrelevant paginatio
   };
   const url = new URL(hotelHref("pine-house", q), "https://example.test");
   assert.equal(url.searchParams.get("guests"), "2");
-  assert.equal(url.searchParams.has("city"), false);
+  assert.equal(url.searchParams.get("city"), "voronezh");
+  assert.equal(url.searchParams.get("checkInDate"), q.checkInDate);
+  assert.equal(url.searchParams.get("checkOutDate"), q.checkOutDate);
   assert.equal(url.searchParams.has("page"), false);
   assert.equal(
     new URL(pageHref("/demo/hotels", q, 4), url).searchParams.get("city"),

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { publicGet, BackendError } from "@/lib/server-api";
 import { parseSearch } from "@/lib/search";
-import { rubles } from "@/lib/format";
+import { rubles, nightsLabel } from "@/lib/format";
 import { reviewHref } from "@/lib/booking-selection";
 import type { HotelDetail, RoomPage } from "@/lib/types";
 import { PropertyPhoto } from "@/components/property-photo";
@@ -53,12 +53,12 @@ export default async function HotelPage({
   return (
     <div className="wrap stack">
       <Link className="breadcrumb" href={`/demo/hotels?${search.query}`}>
-        ← Все отели
+        ← К результатам поиска
       </Link>
       <PageIntro
         eyebrow={hotel.cityName}
         title={hotel.name}
-        description={hotel.description}
+        description={hotel.description?.split("\n")[0]}
       />
       <div className="hotel-detail-art">
         <PropertyPhoto
@@ -66,15 +66,22 @@ export default async function HotelPage({
           className="hotel-art detail-photo"
         />
         <div className="panel stack">
-          <span className="badge">Вымышленный отель</span>
+          <span className="badge">Учебная карточка</span>
           <h2>Об отеле</h2>
           <p>{hotel.address}</p>
+          {hotel.description && (
+            <details>
+              <summary>Описание и источник</summary>
+              <p className="page-intro-description">{hotel.description}</p>
+            </details>
+          )}
           <p className="muted">
             Часовой пояс: {hotel.timeZone}. Правила дат и отмены рассчитываются
             по времени отеля.
           </p>
           <small>
-            Фото интерьера показано для примера, а отель является вымышленным.
+            Номера, цены и доступность используются для демонстрации.
+            Иллюстрации интерьеров не являются фотографиями этого отеля.
           </small>
         </div>
       </div>
@@ -105,7 +112,7 @@ export default async function HotelPage({
                     </p>
                     {room.availability !== "NOT_EVALUATED" && (
                       <p>
-                        За {room.pricing.nights} ночи:{" "}
+                        За {nightsLabel(room.pricing.nights)}:{" "}
                         <strong>{rubles(room.pricing.totalPrice)}</strong>
                       </p>
                     )}
@@ -157,11 +164,11 @@ export default async function HotelPage({
         )
       )}
       <section className="panel stack">
-        <h2>Условная локация</h2>
+        <h2>Адрес</h2>
         <p>{hotel.address}</p>
         <p className="muted">
-          Это вымышленный объект, а не место реального размещения. Карта и
-          геолокация здесь не загружаются.
+          Адреса реальных отелей приведены для справки; учебное бронирование
+          не передаётся в отель. Карта и геолокация здесь не загружаются.
         </p>
       </section>
     </div>

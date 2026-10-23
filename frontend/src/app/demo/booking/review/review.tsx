@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createApiClient, ApiClientError } from "@/lib/api-client";
 import { BookingFlow, type ReviewState } from "@/lib/booking-flow";
 import { reviewHref } from "@/lib/booking-selection";
-import { rubles } from "@/lib/format";
+import { rubles, nightsLabel } from "@/lib/format";
 import type { QuoteRequest } from "@/lib/types";
 export function Review({ selection }: { selection: QuoteRequest }) {
   const router = useRouter(),
@@ -145,8 +145,7 @@ export function Review({ selection }: { selection: QuoteRequest }) {
           <section className="panel stack">
             <h2>Итог расчёта</h2>
             <p>
-              {rubles(quote.pricing.nightlyPrice)} × {quote.pricing.nights}{" "}
-              ночей
+              {rubles(quote.pricing.nightlyPrice)} × {nightsLabel(quote.pricing.nights)}
             </p>
             <p className="booking-total">{rubles(quote.pricing.totalPrice)}</p>
             <p>Все сборы включены. Оплата не требуется.</p>

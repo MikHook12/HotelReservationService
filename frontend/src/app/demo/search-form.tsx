@@ -9,7 +9,7 @@ export function SearchFilters({
   form?: string;
 }) {
   return (
-    <div className="filter-fields search-fields">
+    <div key={new URLSearchParams(values).toString()} className="filter-fields search-fields">
       <label className="field">
         Цена за ночь, от
         <input
@@ -62,7 +62,10 @@ export function SearchForm({
   id?: string;
 }) {
   return (
-    <form id={id} className="search-form" action={action} method="get">
+    <form key={new URLSearchParams(values).toString()} id={id} className="search-form" action={action} method="get">
+      {!showCity && values.city && (
+        <input type="hidden" name="city" value={values.city} />
+      )}
       <div className="search-fields">
         {showCity && (
           <label className="field">

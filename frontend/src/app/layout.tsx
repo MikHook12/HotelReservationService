@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     template: "%s · Hotel Reservation",
   },
   description:
-    "Демонстрационный проект бронирования: вымышленные отели, без оплаты и реального заселения.",
+    "Учебный каталог отелей: демонстрационные номера и цены, без оплаты и реального заселения.",
 };
 export default function RootLayout({
   children,

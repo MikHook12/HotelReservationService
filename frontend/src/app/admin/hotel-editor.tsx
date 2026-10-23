@@ -322,7 +322,8 @@ function Rooms({ hotelId }: { hotelId: string }) {
       {!data && !error && <p role="status">Загружаем комнаты…</p>}
       {data && (
         <>
-          <div className="admin-table">
+          <p className="muted admin-table-hint">Таблицу можно прокрутить по горизонтали.</p>
+          <div className="admin-table" role="region" aria-label="Список комнат" tabIndex={0}>
             <table>
               <thead>
                 <tr>
