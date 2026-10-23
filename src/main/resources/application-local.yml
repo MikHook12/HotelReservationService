@@ -1,0 +1,39 @@
+# Explicit local profile, started by ./dev. Does not import the user's .env.
+server:
+  address: 127.0.0.1
+  port: 18080
+spring:
+  config:
+    import: []
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:15433/hotel_local
+    username: hotel_local
+    password: ${LOCAL_DB_PASSWORD}
+  data:
+    mongodb:
+      uri: mongodb://hotel_local:${LOCAL_MONGO_PASSWORD}@127.0.0.1:17017/hotel_local?authSource=admin
+  kafka:
+    bootstrap-servers: 127.0.0.1:19092
+app:
+  bootstrap:
+    admin:
+      enabled: true
+      name: local-admin
+      email: local-admin@example.invalid
+      password: ${LOCAL_ADMIN_PASSWORD}
+  media:
+    directory: ${LOCAL_MEDIA_DIRECTORY}
+  local:
+    environment-id: hotel-local-app-v1
+    seed-enabled: true
+    username: local-user
+    password: ${LOCAL_USER_PASSWORD}
+  web:
+    v2:
+      enabled: true
+      registration-mode: CLOSED
+      quote-encryption-key: ${LOCAL_QUOTE_KEY}

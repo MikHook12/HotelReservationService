@@ -5,6 +5,38 @@ on:
 permissions:
   contents: read
 jobs:
+  frontend:
+    name: Frontend checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '26'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Validate browser API contract
+        working-directory: .
+        run: python3 docs/api/validate_contract.py
+      - name: Generate API types and require consistency
+        run: |
+          cp src/lib/api-schema.d.ts "$RUNNER_TEMP/hotel-api-schema.d.ts"
+          npm run generate:api
+          diff -u "$RUNNER_TEMP/hotel-api-schema.d.ts" src/lib/api-schema.d.ts
+      - name: Frontend tests
+        run: npm test
+      - name: Production build
+        run: npm run build
+      - name: TypeScript checks including generated route types
+        run: npm run typecheck
   tests:
     runs-on: ubuntu-latest
     steps:

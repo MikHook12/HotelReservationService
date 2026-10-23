@@ -1,0 +1,6357 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Hotel Reservation — target browser API",
+    "version": "0.2.0-local",
+    "description": "Browser API implemented locally with explicit v2 enablement. Fictional inventory; no payments. Registration remains CLOSED except the explicit test gate. Admin catalogue/media use ADMIN session+CSRF. See ../API_CONTRACT.md."
+  },
+  "servers": [
+    {
+      "url": "/api/v2",
+      "description": "Same-origin browser adapter; local HTTP is restricted to development loopback."
+    }
+  ],
+  "security": [],
+  "x-contract-status": "local-implementation-with-registration-gate",
+  "x-default-language": "ru-RU",
+  "paths": {
+    "/cities": {
+      "get": {
+        "operationId": "listCities",
+        "summary": "Supported demo cities and hotel-local date limits",
+        "description": "",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Supported demo cities and hotel-local date limits",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CityList"
+                },
+                "examples": {
+                  "cityList": {
+                    "$ref": "#/components/examples/cityList"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        }
+      }
+    },
+    "/hotels": {
+      "get": {
+        "operationId": "searchHotels",
+        "summary": "Find hotels with eligible rooms",
+        "description": "Published hotels/rooms only. With dates: EXISTS one room meeting capacity/price and no CONFIRMED overlap [checkIn,checkOut). Price from that same eligible set. Without dates: no availability assertion. Dates must be a pair. Multi-zone local date exclusions are explicit warnings. No N+1/collection-fetch pagination semantics exposed.",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Find hotels with eligible rooms",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HotelPage"
+                },
+                "examples": {
+                  "hotelPage": {
+                    "$ref": "#/components/examples/hotelPage"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CityCode"
+          },
+          {
+            "$ref": "#/components/parameters/CheckIn"
+          },
+          {
+            "$ref": "#/components/parameters/CheckOut"
+          },
+          {
+            "$ref": "#/components/parameters/Guests"
+          },
+          {
+            "$ref": "#/components/parameters/MinPrice"
+          },
+          {
+            "$ref": "#/components/parameters/MaxPrice"
+          },
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/Size"
+          },
+          {
+            "$ref": "#/components/parameters/PriceSort"
+          }
+        ]
+      }
+    },
+    "/hotels/{slug}": {
+      "get": {
+        "operationId": "getHotelBySlug",
+        "summary": "Public hotel metadata",
+        "description": "No inline bookings/guests. Query room availability separately; immutable slug distinct from numeric legacy path.",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Public hotel metadata",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HotelDetail"
+                },
+                "examples": {
+                  "hotel": {
+                    "$ref": "#/components/examples/hotel"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ]
+      }
+    },
+    "/hotels/{slug}/rooms": {
+      "get": {
+        "operationId": "listHotelRooms",
+        "summary": "Rooms matching capacity and nightly price",
+        "description": "List matching published rooms, each with AVAILABLE/UNAVAILABLE when dates supplied, NOT_EVALUATED otherwise. No guest data or occupied-date arrays. Room sorting uses its own nightly price, numeric id tiebreak. Invalid local dates return 400.",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Rooms matching capacity and nightly price",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomPage"
+                },
+                "examples": {
+                  "roomPage": {
+                    "$ref": "#/components/examples/roomPage"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          },
+          {
+            "$ref": "#/components/parameters/CheckIn"
+          },
+          {
+            "$ref": "#/components/parameters/CheckOut"
+          },
+          {
+            "$ref": "#/components/parameters/Guests"
+          },
+          {
+            "$ref": "#/components/parameters/MinPrice"
+          },
+          {
+            "$ref": "#/components/parameters/MaxPrice"
+          },
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/Size"
+          },
+          {
+            "$ref": "#/components/parameters/PriceSort"
+          }
+        ]
+      }
+    },
+    "/rooms/{roomId}": {
+      "get": {
+        "operationId": "getPublicRoom",
+        "summary": "Public room and evaluated selection",
+        "description": "May report UNAVAILABLE or CAPACITY_EXCEEDED without exposing conflicting reservations. Not a hold.",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Public room and evaluated selection",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Room"
+                },
+                "examples": {
+                  "room": {
+                    "$ref": "#/components/examples/room"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RoomId"
+          },
+          {
+            "$ref": "#/components/parameters/CheckIn"
+          },
+          {
+            "$ref": "#/components/parameters/CheckOut"
+          },
+          {
+            "$ref": "#/components/parameters/Guests"
+          }
+        ]
+      }
+    },
+    "/auth/csrf": {
+      "get": {
+        "operationId": "getCsrf",
+        "summary": "Obtain session-bound CSRF token and signup mode",
+        "description": "Creates anonymous session if necessary. Token lifetime 30 min, reuse until expiry; rotate token and session identifier on login/logout. Always no-store. Anonymous session absolute lifetime 30 min. Does not log in.",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Obtain session-bound CSRF token and signup mode",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CsrfInfo"
+                },
+                "examples": {
+                  "csrf": {
+                    "$ref": "#/components/examples/csrf"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "login",
+        "summary": "Create authenticated browser session",
+        "description": "No redirect parameter, no Basic challenge. Rotate session ID/CSRF, then GET fresh csrf. Generic INVALID_CREDENTIALS. Limit 5 failed attempts / normalized-username+source /15min and 30/source/15min. Private account-independent responses.",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [
+          {
+            "csrf": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Create authenticated browser session",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionInfo"
+                },
+                "examples": {
+                  "session": {
+                    "$ref": "#/components/examples/session"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "413": {
+            "$ref": "#/components/responses/413"
+          },
+          "415": {
+            "$ref": "#/components/responses/415"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "logout",
+        "summary": "Invalidate session and clear cookie",
+        "description": "Valid anonymous CSRF session suffices; repeated logout via fresh csrf is 204. Invalidates server session, expires cookie. No body; obtain new anonymous csrf afterwards. Client clears own data/operation context.",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [
+          {
+            "csrf": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Invalidate session and clear cookie",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "getSession",
+        "summary": "Current user and session expiry",
+        "description": "",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current user and session expiry",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionInfo"
+                },
+                "examples": {
+                  "session": {
+                    "$ref": "#/components/examples/session"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "registerRestrictedDemoAccount",
+        "summary": "Register only in explicit restricted test mode",
+        "description": "CLOSED in public deployments until email/recovery task; REGISTRATION_CLOSED even for a nonexisting email. TEST_ONLY only in isolated, access-controlled test environment. No email sent, emailVerified=false, USER only, no auto-login. 3 attempts/source/hour. Auth-01 will need a revised contract before enabling public signup.",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [
+          {
+            "csrf": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Register only in explicit restricted test mode",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                },
+                "examples": {
+                  "user": {
+                    "$ref": "#/components/examples/user"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "409": {
+            "$ref": "#/components/responses/409"
+          },
+          "413": {
+            "$ref": "#/components/responses/413"
+          },
+          "415": {
+            "$ref": "#/components/responses/415"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings/quote": {
+      "post": {
+        "operationId": "quoteBooking",
+        "summary": "Quote authenticated user selection without a hold",
+        "description": "Owner+QUOTE+key fingerprint of room/dates/guests. 10-min non-sliding expiry. Same key/body within 24h replays same original quote/expiry if still valid; if expired 409 QUOTE_EXPIRED, never silently renew. New key requests a new quote. Wrong payload 409. Retain quote recovery record 24h, then purge; reuse after retention can only recalculate, never create booking.",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [
+          {
+            "session": [],
+            "csrf": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Quote authenticated user selection without a hold",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quote"
+                },
+                "examples": {
+                  "quote": {
+                    "$ref": "#/components/examples/quote"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "409": {
+            "$ref": "#/components/responses/409"
+          },
+          "413": {
+            "$ref": "#/components/responses/413"
+          },
+          "415": {
+            "$ref": "#/components/responses/415"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings": {
+      "post": {
+        "operationId": "createBooking",
+        "summary": "Confirm selection exactly once",
+        "description": "Fresh key requires full body; known success can be replayed with header ONLY, no body or quote. Resolve existing operation before quote expiry/date/catalog validation; compare canonical payload if supplied. Under durable operation-row then room lock, recheck availability, capacity, price/terms and deadline; atomic booking+outbox+success receipt. Same key with new quoteToken is a conflict. No implicit reconfirmation. Immutable receipt statusAtCreation is not current booking status. After locking the operation row, worker MUST re-read state and attemptToken/lease: terminal SUCCEEDED/FAILED stops creation; only its own PROCESSING unexpired lease may begin. Recovery makes terminal states irreversible; a delayed worker cannot resurrect REQUEST_ABORTED.",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [
+          {
+            "session": [],
+            "csrf": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Confirm selection exactly once",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              },
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "/api/v2/me/bookings/{id}"
+              },
+              "Idempotency-Replayed": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "description": "true when the original stored receipt was returned."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingCreationReceipt"
+                },
+                "examples": {
+                  "receipt": {
+                    "$ref": "#/components/examples/receipt"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "409": {
+            "$ref": "#/components/responses/409"
+          },
+          "413": {
+            "$ref": "#/components/responses/413"
+          },
+          "415": {
+            "$ref": "#/components/responses/415"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBookingRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/booking-operations/result": {
+      "get": {
+        "operationId": "getBookingOperation",
+        "summary": "Resolve uncertain creation result by original key",
+        "description": "200 PROCESSING/SUCCEEDED/FAILED. 404 only no operation for current user/key, not proof no request is still in flight; retry original key, never invent a replacement based on 404. No quote/body required; key travels in Idempotency-Key header, never URL or analytics/access logs. Successful records and terminal key bindings retained with history, no expiry. Failed full error expires in 7 days but terminal code/fingerprint persist.",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resolve uncertain creation result by original key",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationStatus"
+                },
+                "examples": {
+                  "succeededOperation": {
+                    "$ref": "#/components/examples/succeededOperation"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ]
+      }
+    },
+    "/me/booking-operations/fence": {
+      "post": {
+        "operationId": "fenceUnknownBookingOperation",
+        "summary": "Resolve or fence an unaccepted original operation",
+        "description": "Explicit recovery action after unknown/404 result and lost quote. Atomically read existing owner+CREATE_BOOKING+key; return its status. If absent insert durable FAILED REQUEST_ABORTED tombstone, unique with create reservation; late original POST can never create on this key. Does not cancel a committed booking or abort a locked PROCESSING transaction. PROCESSING still requires polling. No request body or expired quote required.",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [
+          {
+            "session": [],
+            "csrf": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resolve or fence an unaccepted original operation",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationStatus"
+                },
+                "examples": {
+                  "fencedOperation": {
+                    "$ref": "#/components/examples/fencedOperation"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ]
+      }
+    },
+    "/me/bookings": {
+      "get": {
+        "operationId": "listOwnBookings",
+        "summary": "List only current owner bookings",
+        "description": "ADMIN here also sees only own. Query status optional, sort createdDesc (new first, legacy null last,id DESC) or checkInAsc (date ASC,id ASC). No state mutation, expired trips remain CONFIRMED unless cancelled.",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List only current owner bookings",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/Size"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CONFIRMED",
+                "CANCELLED"
+              ]
+            },
+            "description": ""
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdDesc",
+                "checkInAsc"
+              ],
+              "default": "createdDesc"
+            },
+            "description": ""
+          }
+        ]
+      }
+    },
+    "/me/bookings/{bookingId}": {
+      "get": {
+        "operationId": "getOwnBooking",
+        "summary": "Read own booking current state",
+        "description": "Wrong owner or missing ID: identical NOT_FOUND 404, including ADMIN attempting another user via /me. New snapshots complete; legacy unknown values explicit null.",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Read own booking current state",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Booking"
+                },
+                "examples": {
+                  "booking": {
+                    "$ref": "#/components/examples/booking"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BookingId"
+          }
+        ]
+      }
+    },
+    "/me/bookings/{bookingId}/cancel": {
+      "post": {
+        "operationId": "cancelOwnBooking",
+        "summary": "Cancel own booking before saved local deadline",
+        "description": "No body/key needed: durable CONFIRMED->CANCELLED transition itself idempotent. Lock room, re-read booking status, check owner and now<saved deadline. Already CANCELLED returns 200 with original cancelledAt even after deadline. 409 CANCELLATION_CLOSED or LEGACY_TIMEZONE_UNKNOWN. Cancellation and outbox event atomic. Never delete or restore history.",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [
+          {
+            "session": [],
+            "csrf": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cancel own booking before saved local deadline",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Booking"
+                },
+                "examples": {
+                  "cancelled": {
+                    "$ref": "#/components/examples/cancelled"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "409": {
+            "$ref": "#/components/responses/409"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BookingId"
+          }
+        ]
+      }
+    },
+    "/admin/bookings": {
+      "get": {
+        "operationId": "listAdminBookings",
+        "summary": "Explicit administrator booking list",
+        "description": "All bookings, same privacy-minimized Booking DTO, no guest email. Same status/sort query as /me/bookings. Administrative cancellation is outside this contract.",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Explicit administrator booking list",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/Size"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CONFIRMED",
+                "CANCELLED"
+              ]
+            },
+            "description": ""
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdDesc",
+                "checkInAsc"
+              ],
+              "default": "createdDesc"
+            },
+            "description": ""
+          }
+        ],
+        "x-required-roles": [
+          "ADMIN"
+        ]
+      }
+    },
+    "/admin/bookings/{bookingId}": {
+      "get": {
+        "operationId": "getAdminBooking",
+        "summary": "Administrator read-only booking detail",
+        "description": "Role ADMIN mandatory. Does not grant right to cancel another user booking; no admin cancel route.",
+        "x-implementation-status": "planned-not-implemented",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Administrator read-only booking detail",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store",
+                "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Booking"
+                },
+                "examples": {
+                  "booking": {
+                    "$ref": "#/components/examples/booking"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BookingId"
+          }
+        ],
+        "x-required-roles": [
+          "ADMIN"
+        ]
+      }
+    },
+    "/admin/hotels": {
+      "get": {
+        "operationId": "listAdminHotels",
+        "summary": "listAdminHotels",
+        "x-implementation-status": "implemented-locally",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminHotelPage"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "x-required-roles": [
+          "ADMIN"
+        ]
+      },
+      "post": {
+        "operationId": "createAdminHotel",
+        "summary": "createAdminHotel",
+        "x-implementation-status": "implemented-locally",
+        "security": [
+          {
+            "session": [],
+            "csrf": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminHotel"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminHotelWrite"
+              }
+            }
+          }
+        },
+        "x-required-roles": [
+          "ADMIN"
+        ]
+      }
+    },
+    "/admin/hotels/{id}": {
+      "get": {
+        "operationId": "getAdminHotel",
+        "summary": "getAdminHotel",
+        "x-implementation-status": "implemented-locally",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminHotel"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "x-required-roles": [
+          "ADMIN"
+        ]
+      },
+      "post": {
+        "operationId": "updateAdminHotel",
+        "summary": "updateAdminHotel",
+        "x-implementation-status": "implemented-locally",
+        "security": [
+          {
+            "session": [],
+            "csrf": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminHotel"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AdminHotelWrite"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "version"
+                    ],
+                    "properties": {
+                      "version": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "x-required-roles": [
+          "ADMIN"
+        ]
+      }
+    },
+    "/admin/hotels/{id}/rooms": {
+      "get": {
+        "operationId": "listAdminRooms",
+        "summary": "listAdminRooms",
+        "x-implementation-status": "implemented-locally",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRoomPage"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "x-required-roles": [
+          "ADMIN"
+        ]
+      },
+      "post": {
+        "operationId": "createAdminRoom",
+        "summary": "createAdminRoom",
+        "x-implementation-status": "implemented-locally",
+        "security": [
+          {
+            "session": [],
+            "csrf": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRoom"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRoomWrite"
+              }
+            }
+          }
+        },
+        "x-required-roles": [
+          "ADMIN"
+        ]
+      }
+    },
+    "/admin/rooms/{id}": {
+      "post": {
+        "operationId": "updateAdminRoom",
+        "summary": "updateAdminRoom",
+        "x-implementation-status": "implemented-locally",
+        "security": [
+          {
+            "session": [],
+            "csrf": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRoom"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AdminRoomWrite"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "version"
+                    ],
+                    "properties": {
+                      "version": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "x-required-roles": [
+          "ADMIN"
+        ]
+      }
+    },
+    "/admin/media": {
+      "post": {
+        "operationId": "uploadCatalogPhoto",
+        "summary": "uploadCatalogPhoto",
+        "x-implementation-status": "implemented-locally",
+        "security": [
+          {
+            "session": [],
+            "csrf": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadedMedia"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Safe error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "description": "ADMIN only; JPEG/PNG up to 5 MiB, <=6000 per dimension and <=20M pixels. Decode/reencode removes metadata. Returns persistent owned URL. No automatic deletion.",
+        "x-required-roles": [
+          "ADMIN"
+        ]
+      }
+    },
+    "/media/{filename}": {
+      "get": {
+        "operationId": "getCatalogPhoto",
+        "summary": "Public owned photo bytes",
+        "security": [],
+        "x-implementation-status": "implemented-locally",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}\\.(jpg|png)$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JPEG/PNG bytes, nosniff, public max-age=86400 immutable",
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "public, max-age=86400, immutable"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Image not found",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "private, no-store"
+              },
+              "X-Trace-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Id": {
+        "type": "string",
+        "pattern": "^[1-9][0-9]{0,18}$",
+        "description": "Positive Java Long serialized as decimal string; <=9223372036854775807. No leading zeros."
+      },
+      "LocalDate": {
+        "type": "string",
+        "format": "date",
+        "description": "Hotel-local calendar date YYYY-MM-DD, never converted to/from a browser UTC timestamp."
+      },
+      "Instant": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$",
+        "description": "UTC instant ending Z. Deadline is also accompanied by its saved IANA time zone."
+      },
+      "TimeZone": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64,
+        "description": "An explicit valid IANA zone; examples Europe/Moscow, Asia/Vladivostok. No implicit default for legacy hotels."
+      },
+      "Money": {
+        "type": "string",
+        "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{2}$",
+        "description": "Non-negative base-10 RUB amount, exactly two fraction digits. No exponent, separators, float or implicit rounding. Max 999999999999.99; catalog nightly prices capped at 9999999999.99 so 30-night totals fit."
+      },
+      "Currency": {
+        "type": "string",
+        "enum": [
+          "RUB"
+        ]
+      },
+      "IdempotencyKey": {
+        "type": "string",
+        "format": "uuid",
+        "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$",
+        "description": "Client-generated UUIDv4, lower-case canonical spelling; owner+operation scoped, never a credential."
+      },
+      "Pricing": {
+        "type": "object",
+        "properties": {
+          "nightlyPrice": {
+            "$ref": "#/components/schemas/NightlyPrice"
+          },
+          "nights": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30
+          },
+          "totalPrice": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/Currency"
+          },
+          "feesIncluded": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "nightlyPrice",
+          "nights",
+          "totalPrice",
+          "currency",
+          "feesIncluded"
+        ],
+        "additionalProperties": false,
+        "description": "Fixed room price × calendar nights. All fees are zero/included; no payments, extra taxes, discounts or per-person tariffs."
+      },
+      "Stay": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "checkInDate": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "checkOutDate": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "guests": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "roomId",
+          "checkInDate",
+          "checkOutDate",
+          "guests"
+        ],
+        "additionalProperties": false,
+        "description": "One physical room; guests <= room.capacity. Both dates required, 1..30 nights, hotel-local tomorrow..today+365 inclusive for checkout."
+      },
+      "DateLimits": {
+        "type": "object",
+        "properties": {
+          "hotelToday": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "minCheckInDate": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "maxCheckOutDate": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "maxNights": {
+            "type": "integer",
+            "const": 30
+          },
+          "timeZone": {
+            "$ref": "#/components/schemas/TimeZone"
+          }
+        },
+        "required": [
+          "hotelToday",
+          "minCheckInDate",
+          "maxCheckOutDate",
+          "maxNights",
+          "timeZone"
+        ],
+        "additionalProperties": false
+      },
+      "Photo": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "pattern": "^/media/"
+          },
+          "alt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "credit": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "license": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "url",
+          "alt",
+          "credit",
+          "license"
+        ],
+        "additionalProperties": false,
+        "description": "Only reviewed local media URLs, rights/credit and Russian alt. No arbitrary remote URL fetch."
+      },
+      "DemoLocation": {
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "isFictional": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "latitude",
+          "longitude",
+          "isFictional"
+        ],
+        "additionalProperties": false
+      },
+      "HotelCard": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "maxLength": 100
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "cityCode": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]{1,64}$"
+          },
+          "cityName": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "timeZone": {
+            "$ref": "#/components/schemas/TimeZone"
+          },
+          "isDemo": {
+            "type": "boolean",
+            "const": true
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Photo"
+            },
+            "maxItems": 10
+          },
+          "fromPrice": {
+            "$ref": "#/components/schemas/Pricing"
+          },
+          "availabilityEvaluated": {
+            "type": "boolean"
+          },
+          "matchedRoomCount": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "cityCode",
+          "cityName",
+          "timeZone",
+          "isDemo",
+          "photos",
+          "fromPrice",
+          "availabilityEvaluated",
+          "matchedRoomCount"
+        ],
+        "additionalProperties": false,
+        "description": "No owner IDs, user data, guest data or per-booking unavailable date arrays. Without dates fromPrice.nights=1 is an indicative nightly price, not a quote."
+      },
+      "HotelDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "maxLength": 100
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "cityCode": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]{1,64}$"
+          },
+          "cityName": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "timeZone": {
+            "$ref": "#/components/schemas/TimeZone"
+          },
+          "isDemo": {
+            "type": "boolean",
+            "const": true
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Photo"
+            },
+            "maxItems": 10
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "demoLocation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DemoLocation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dateLimits": {
+            "$ref": "#/components/schemas/DateLimits"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "cityCode",
+          "cityName",
+          "timeZone",
+          "isDemo",
+          "photos",
+          "description",
+          "address",
+          "demoLocation",
+          "dateLimits"
+        ],
+        "additionalProperties": false,
+        "description": "Detail metadata is independent of current room availability. No inline price or room availability; query rooms separately."
+      },
+      "Room": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "hotelId": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "hotelSlug": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Photo"
+            },
+            "maxItems": 10
+          },
+          "pricing": {
+            "$ref": "#/components/schemas/Pricing"
+          },
+          "availability": {
+            "type": "string",
+            "enum": [
+              "AVAILABLE",
+              "UNAVAILABLE",
+              "NOT_EVALUATED"
+            ]
+          },
+          "unavailableReason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "ROOM_UNAVAILABLE",
+                  "CAPACITY_EXCEEDED"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dateLimits": {
+            "$ref": "#/components/schemas/DateLimits"
+          }
+        },
+        "required": [
+          "id",
+          "hotelId",
+          "hotelSlug",
+          "name",
+          "description",
+          "capacity",
+          "photos",
+          "pricing",
+          "availability",
+          "unavailableReason",
+          "dateLimits"
+        ],
+        "additionalProperties": false,
+        "description": "NOT_EVALUATED without dates, pricing.nights=1 indicative; no reservation hold. Single-room GET may report CAPACITY_EXCEEDED; list filters capacity >= guests."
+      },
+      "SearchWarning": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "DATE_OUT_OF_RANGE_FOR_SOME_HOTELS"
+            ]
+          },
+          "timeZones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeZone"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "code",
+          "timeZones"
+        ],
+        "additionalProperties": false,
+        "description": "Multi-city search can exclude hotels outside hotel-local horizon. Never changes requested dates. If all candidate zones are invalid, 400 DATE_RANGE_INVALID instead."
+      },
+      "HotelPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HotelCard"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "totalElements": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sort": {
+            "type": "string"
+          },
+          "evaluatedAt": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchWarning"
+            }
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "size",
+          "totalElements",
+          "totalPages",
+          "sort",
+          "evaluatedAt",
+          "warnings"
+        ],
+        "additionalProperties": false,
+        "description": "Zero-based offset pagination; empty or out-of-range page returns 200 empty items. Sort has mandatory stable ID tiebreak; counts reflect one database snapshot, not a reservation."
+      },
+      "RoomPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Room"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "totalElements": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sort": {
+            "type": "string"
+          },
+          "evaluatedAt": {
+            "$ref": "#/components/schemas/Instant"
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "size",
+          "totalElements",
+          "totalPages",
+          "sort",
+          "evaluatedAt"
+        ],
+        "additionalProperties": false,
+        "description": "Zero-based offset pagination; empty or out-of-range page returns 200 empty items. Sort has mandatory stable ID tiebreak; counts reflect one database snapshot, not a reservation."
+      },
+      "City": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]{1,64}$"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "timeZones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeZone"
+            },
+            "minItems": 1
+          },
+          "dateLimits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DateLimits"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "timeZones",
+          "dateLimits"
+        ],
+        "additionalProperties": false
+      },
+      "CityList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/City"
+            }
+          },
+          "evaluatedAt": {
+            "$ref": "#/components/schemas/Instant"
+          }
+        },
+        "required": [
+          "items",
+          "evaluatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "UserProfile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "USER",
+                "ADMIN"
+              ]
+            },
+            "minItems": 1
+          },
+          "isRestrictedDemoAccount": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "email",
+          "emailVerified",
+          "roles",
+          "isRestrictedDemoAccount"
+        ],
+        "additionalProperties": false,
+        "description": "Only current authenticated user; registration response is only the account just created. Never included in public catalog DTO."
+      },
+      "SessionInfo": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserProfile"
+          },
+          "idleExpiresAt": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "absoluteExpiresAt": {
+            "$ref": "#/components/schemas/Instant"
+          }
+        },
+        "required": [
+          "user",
+          "idleExpiresAt",
+          "absoluteExpiresAt"
+        ],
+        "additionalProperties": false,
+        "description": "Idle 30 minutes; absolute 12 hours. No session identifier or auth token in JSON."
+      },
+      "CsrfInfo": {
+        "type": "object",
+        "properties": {
+          "headerName": {
+            "type": "string",
+            "const": "X-CSRF-TOKEN"
+          },
+          "token": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 512
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "registrationMode": {
+            "type": "string",
+            "enum": [
+              "CLOSED",
+              "TEST_ONLY"
+            ]
+          }
+        },
+        "required": [
+          "headerName",
+          "token",
+          "expiresAt",
+          "registrationMode"
+        ],
+        "additionalProperties": false,
+        "description": "Anonymous or current-session token, in memory only, valid 30 minutes or until session/login/logout rotation. Does not authenticate. CLOSED is production default until email verification/recovery exist."
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 72,
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "additionalProperties": false,
+        "description": "Username login, not implicit email. UTF-8 password <=72 bytes. Existing password semantics preserved; login does not apply new-signup minimum length."
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50
+          },
+          "password": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 72,
+            "writeOnly": true
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          }
+        },
+        "required": [
+          "username",
+          "password",
+          "email"
+        ],
+        "additionalProperties": false,
+        "description": "TEST_ONLY explicitly enabled isolated environment only; password <=72 UTF-8 bytes. Server sets USER and emailVerified=false. No role, returnUrl or verification claim accepted."
+      },
+      "QuoteRequest": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "checkInDate": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "checkOutDate": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "guests": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "roomId",
+          "checkInDate",
+          "checkOutDate",
+          "guests"
+        ],
+        "additionalProperties": false,
+        "description": "One physical room; guests <= room.capacity. Both dates required, 1..30 nights, hotel-local tomorrow..today+365 inclusive for checkout."
+      },
+      "QuoteSnapshot": {
+        "type": "object",
+        "properties": {
+          "hotelId": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "hotelName": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "hotelSlug": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "roomId": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "roomName": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "hotelAddress": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "cityName": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "timeZone": {
+            "$ref": "#/components/schemas/TimeZone"
+          },
+          "isDemo": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "hotelId",
+          "hotelName",
+          "hotelSlug",
+          "roomId",
+          "roomName",
+          "hotelAddress",
+          "cityName",
+          "timeZone",
+          "isDemo"
+        ],
+        "additionalProperties": false,
+        "description": "Display facts and IANA zone captured at booking commit. No user name/email; no promise of historical data for legacy rows."
+      },
+      "Quote": {
+        "type": "object",
+        "properties": {
+          "quoteToken": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{43}$",
+            "description": "Opaque 256-bit server token bound to owner, stay and terms. Store SHA-256 server-side, not raw token in logs."
+          },
+          "stay": {
+            "$ref": "#/components/schemas/Stay"
+          },
+          "pricing": {
+            "$ref": "#/components/schemas/Pricing"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/QuoteSnapshot"
+          },
+          "termsVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "cancellationDeadlineAt": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "holdsRoom": {
+            "type": "boolean",
+            "const": false
+          }
+        },
+        "required": [
+          "quoteToken",
+          "stay",
+          "pricing",
+          "snapshot",
+          "termsVersion",
+          "createdAt",
+          "expiresAt",
+          "cancellationDeadlineAt",
+          "holdsRoom"
+        ],
+        "additionalProperties": false,
+        "description": "Valid for 10 minutes by server time, non-sliding. Not a price/availability lock. Any total/price/currency/cancellation/TZ term change before commit requires explicit reconfirmation."
+      },
+      "CreateBookingRequest": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "checkInDate": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "checkOutDate": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "guests": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "quoteToken": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{43}$",
+            "description": "Opaque 256-bit server token bound to owner, stay and terms. Store SHA-256 server-side, not raw token in logs."
+          }
+        },
+        "required": [
+          "roomId",
+          "checkInDate",
+          "checkOutDate",
+          "guests",
+          "quoteToken"
+        ],
+        "additionalProperties": false,
+        "description": "No userId or client money. Full canonical payload includes quoteToken; changing only the token changes the idempotency fingerprint. Body optional ONLY for known operation replay; fresh operations require all fields."
+      },
+      "Cancellation": {
+        "type": "object",
+        "properties": {
+          "canCancel": {
+            "type": "boolean"
+          },
+          "deadlineAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Instant"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timeZone": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TimeZone"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "DEADLINE_PASSED",
+                  "ALREADY_CANCELLED",
+                  "LEGACY_TIMEZONE_UNKNOWN"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "canCancel",
+          "deadlineAt",
+          "timeZone",
+          "reason"
+        ],
+        "additionalProperties": false,
+        "description": "Evaluate server time after acquiring room lock: now < saved local check-in day start. CANCELLED repeat succeeds even past deadline. Legacy with unknown zone cannot self-cancel."
+      },
+      "Booking": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/NewBooking"
+          },
+          {
+            "$ref": "#/components/schemas/LegacyBooking"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "origin",
+          "mapping": {
+            "V2": "#/components/schemas/NewBooking",
+            "LEGACY": "#/components/schemas/LegacyBooking"
+          }
+        }
+      },
+      "NewBooking": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "roomId": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "checkInDate": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "checkOutDate": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CONFIRMED",
+              "CANCELLED"
+            ]
+          },
+          "cancelledAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Instant"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cancellation": {
+            "$ref": "#/components/schemas/Cancellation"
+          },
+          "origin": {
+            "type": "string",
+            "const": "V2"
+          },
+          "guests": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "pricing": {
+            "$ref": "#/components/schemas/Pricing"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/QuoteSnapshot"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Instant"
+          }
+        },
+        "required": [
+          "id",
+          "roomId",
+          "checkInDate",
+          "checkOutDate",
+          "status",
+          "cancelledAt",
+          "cancellation",
+          "origin",
+          "guests",
+          "pricing",
+          "snapshot",
+          "createdAt"
+        ],
+        "additionalProperties": false,
+        "description": "All saved commercial/display facts immutable after commit, including cancellation zone/deadline; mutable only status/cancelledAt. No payment state."
+      },
+      "LegacyBooking": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "roomId": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "checkInDate": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "checkOutDate": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CONFIRMED",
+              "CANCELLED"
+            ]
+          },
+          "cancelledAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Instant"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cancellation": {
+            "$ref": "#/components/schemas/Cancellation"
+          },
+          "origin": {
+            "type": "string",
+            "const": "LEGACY"
+          },
+          "guests": {
+            "type": "null"
+          },
+          "pricing": {
+            "type": "null"
+          },
+          "snapshot": {
+            "type": "null"
+          },
+          "createdAt": {
+            "type": "null"
+          },
+          "currentCatalogDisplay": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "hotelName": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "roomName": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "source": {
+                    "type": "string",
+                    "const": "CURRENT_CATALOG"
+                  }
+                },
+                "required": [
+                  "hotelName",
+                  "roomName",
+                  "source"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "roomId",
+          "checkInDate",
+          "checkOutDate",
+          "status",
+          "cancelledAt",
+          "cancellation",
+          "origin",
+          "guests",
+          "pricing",
+          "snapshot",
+          "createdAt",
+          "currentCatalogDisplay"
+        ],
+        "additionalProperties": false,
+        "description": "Never reconstruct historical price, guests, createdAt, names or address from current catalog. Original room and dates retained; CONFIRMED until explicitly cancelled. Verified per-record timezone may supply cancellation rules, otherwise no self-cancel."
+      },
+      "BookingPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Booking"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "totalElements": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sort": {
+            "type": "string"
+          },
+          "evaluatedAt": {
+            "$ref": "#/components/schemas/Instant"
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "size",
+          "totalElements",
+          "totalPages",
+          "sort",
+          "evaluatedAt"
+        ],
+        "additionalProperties": false,
+        "description": "Zero-based offset pagination; empty or out-of-range page returns 200 empty items. Sort has mandatory stable ID tiebreak; counts reflect one database snapshot, not a reservation."
+      },
+      "BookingCreationReceipt": {
+        "type": "object",
+        "properties": {
+          "bookingId": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "statusAtCreation": {
+            "type": "string",
+            "const": "CONFIRMED"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "stay": {
+            "$ref": "#/components/schemas/Stay"
+          },
+          "pricing": {
+            "$ref": "#/components/schemas/Pricing"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/QuoteSnapshot"
+          },
+          "cancellationDeadlineAt": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "bookingUrl": {
+            "type": "string",
+            "pattern": "^/api/v2/me/bookings/[1-9][0-9]*$"
+          }
+        },
+        "required": [
+          "bookingId",
+          "statusAtCreation",
+          "createdAt",
+          "stay",
+          "pricing",
+          "snapshot",
+          "cancellationDeadlineAt",
+          "bookingUrl"
+        ],
+        "additionalProperties": false,
+        "description": "Immutable original success receipt, not current status. Same receipt on replay even if booking was later cancelled; GET bookingUrl for current status. Retained with booking history; no quote required to recover it."
+      },
+      "FieldError": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "REQUIRED",
+              "INVALID_FORMAT",
+              "OUT_OF_RANGE",
+              "INVALID_RANGE",
+              "UNKNOWN_FIELD",
+              "UTF8_TOO_LONG"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "field",
+          "code",
+          "message"
+        ],
+        "additionalProperties": false,
+        "description": "Safe localized text, no rejected values; field uses JSON field or query parameter name, no full URL."
+      },
+      "ErrorDetails": {
+        "type": "object",
+        "properties": {
+          "replacementQuote": {
+            "$ref": "#/components/schemas/Quote"
+          },
+          "retryAfterSeconds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "operationUrl": {
+            "type": "string",
+            "const": "/api/v2/me/booking-operations/result"
+          },
+          "dateLimits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DateLimits"
+            }
+          }
+        },
+        "required": [],
+        "additionalProperties": false,
+        "description": "Only documented safe details. replacementQuote is advisory and may expire; no auto-submission. No arbitrary exception metadata."
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "VALIDATION_FAILED",
+              "MALFORMED_JSON",
+              "UNSUPPORTED_MEDIA_TYPE",
+              "PAYLOAD_TOO_LARGE",
+              "AUTHENTICATION_REQUIRED",
+              "INVALID_CREDENTIALS",
+              "CSRF_INVALID",
+              "FORBIDDEN",
+              "REGISTRATION_CLOSED",
+              "ACCOUNT_CONFLICT",
+              "NOT_FOUND",
+              "DATE_RANGE_INVALID",
+              "ROOM_UNAVAILABLE",
+              "ROOM_NOT_BOOKABLE",
+              "CAPACITY_EXCEEDED",
+              "QUOTE_EXPIRED",
+              "QUOTE_INVALID",
+              "QUOTE_SELECTION_MISMATCH",
+              "PRICE_CHANGED",
+              "TERMS_CHANGED",
+              "IDEMPOTENCY_KEY_REQUIRED",
+              "IDEMPOTENCY_CONFLICT",
+              "OPERATION_IN_PROGRESS",
+              "BODY_REQUIRED",
+              "REQUEST_ABORTED",
+              "CANCELLATION_CLOSED",
+              "LEGACY_TIMEZONE_UNKNOWN",
+              "RATE_LIMITED",
+              "INTERNAL_ERROR",
+              "SERVICE_UNAVAILABLE",
+              "RESOURCE_CONFLICT"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "fieldErrors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldError"
+            }
+          },
+          "traceId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "details": {
+            "$ref": "#/components/schemas/ErrorDetails"
+          }
+        },
+        "required": [
+          "status",
+          "code",
+          "message",
+          "fieldErrors",
+          "traceId",
+          "details"
+        ],
+        "additionalProperties": false,
+        "description": "Stable code drives client behavior; Russian message may change. No stack trace, rejected values, request query, credentials or another owner identifier."
+      },
+      "OperationStatus": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ProcessingOperation"
+          },
+          {
+            "$ref": "#/components/schemas/SucceededOperation"
+          },
+          {
+            "$ref": "#/components/schemas/FailedOperation"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "state",
+          "mapping": {
+            "PROCESSING": "#/components/schemas/ProcessingOperation",
+            "SUCCEEDED": "#/components/schemas/SucceededOperation",
+            "FAILED": "#/components/schemas/FailedOperation"
+          }
+        }
+      },
+      "ProcessingOperation": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/IdempotencyKey"
+          },
+          "operation": {
+            "type": "string",
+            "const": "CREATE_BOOKING"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "state": {
+            "type": "string",
+            "const": "PROCESSING"
+          },
+          "nextCheckAfterSeconds": {
+            "type": "integer",
+            "const": 2
+          }
+        },
+        "required": [
+          "key",
+          "operation",
+          "createdAt",
+          "state",
+          "nextCheckAfterSeconds"
+        ],
+        "additionalProperties": false,
+        "description": "Durable reservation accepted, final transaction not yet resolved. No success/failure claim. Lease 30 seconds is NOT proof of failure."
+      },
+      "SucceededOperation": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/IdempotencyKey"
+          },
+          "operation": {
+            "type": "string",
+            "const": "CREATE_BOOKING"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "state": {
+            "type": "string",
+            "const": "SUCCEEDED"
+          },
+          "completedAt": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/BookingCreationReceipt"
+          }
+        },
+        "required": [
+          "key",
+          "operation",
+          "createdAt",
+          "state",
+          "completedAt",
+          "receipt"
+        ],
+        "additionalProperties": false
+      },
+      "FailedOperation": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/IdempotencyKey"
+          },
+          "operation": {
+            "type": "string",
+            "const": "CREATE_BOOKING"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "state": {
+            "type": "string",
+            "const": "FAILED"
+          },
+          "completedAt": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "errorCode": {
+            "type": "string",
+            "enum": [
+              "VALIDATION_FAILED",
+              "MALFORMED_JSON",
+              "UNSUPPORTED_MEDIA_TYPE",
+              "PAYLOAD_TOO_LARGE",
+              "AUTHENTICATION_REQUIRED",
+              "INVALID_CREDENTIALS",
+              "CSRF_INVALID",
+              "FORBIDDEN",
+              "REGISTRATION_CLOSED",
+              "ACCOUNT_CONFLICT",
+              "NOT_FOUND",
+              "DATE_RANGE_INVALID",
+              "ROOM_UNAVAILABLE",
+              "ROOM_NOT_BOOKABLE",
+              "CAPACITY_EXCEEDED",
+              "QUOTE_EXPIRED",
+              "QUOTE_INVALID",
+              "QUOTE_SELECTION_MISMATCH",
+              "PRICE_CHANGED",
+              "TERMS_CHANGED",
+              "IDEMPOTENCY_KEY_REQUIRED",
+              "IDEMPOTENCY_CONFLICT",
+              "OPERATION_IN_PROGRESS",
+              "BODY_REQUIRED",
+              "REQUEST_ABORTED",
+              "CANCELLATION_CLOSED",
+              "LEGACY_TIMEZONE_UNKNOWN",
+              "RATE_LIMITED",
+              "INTERNAL_ERROR",
+              "SERVICE_UNAVAILABLE"
+            ]
+          },
+          "errorStatus": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ApiError"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "operation",
+          "createdAt",
+          "state",
+          "completedAt",
+          "errorCode",
+          "errorStatus",
+          "error"
+        ],
+        "additionalProperties": false,
+        "description": "Known no booking committed. Full error body retained 7 days, then null with durable terminal errorCode/fingerprint; key never reusable. Fetch a new quote and ask again before a new create key."
+      },
+      "NightlyPrice": {
+        "type": "string",
+        "pattern": "^(0|[1-9][0-9]{0,9})\\.[0-9]{2}$",
+        "description": "Non-negative nightly RUB amount, exactly two decimals, max 9999999999.99. Fixed room tariff; 30-night total fits Money."
+      },
+      "AdminPhoto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "alt": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "credit": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "license": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "url",
+          "alt",
+          "credit",
+          "license"
+        ]
+      },
+      "AdminHotelWrite": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "slug": {
+            "type": "string",
+            "maxLength": 100,
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "cityCode": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "timeZone": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "distanceFromCityCenter": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "photos": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/AdminPhoto"
+            }
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "city",
+          "cityCode",
+          "timeZone",
+          "address",
+          "description",
+          "distanceFromCityCenter",
+          "published",
+          "photos"
+        ]
+      },
+      "AdminRoomWrite": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "number": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "nightlyPrice": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,9})\\.[0-9]{2}$",
+            "description": "Strictly positive exact RUB decimal; no rounding."
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "photos": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/AdminPhoto"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "number",
+          "capacity",
+          "nightlyPrice",
+          "description",
+          "published",
+          "photos"
+        ]
+      },
+      "AdminHotel": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "slug": {
+            "type": "string",
+            "maxLength": 100,
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "cityCode": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "timeZone": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "distanceFromCityCenter": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "photos": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/AdminPhoto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "slug",
+          "name",
+          "city",
+          "cityCode",
+          "timeZone",
+          "address",
+          "description",
+          "distanceFromCityCenter",
+          "published",
+          "photos"
+        ]
+      },
+      "AdminRoom": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "hotelId": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "number": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "nightlyPrice": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,9})\\.[0-9]{2}$",
+            "description": "Strictly positive exact RUB decimal; no rounding."
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "photos": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/AdminPhoto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "hotelId",
+          "version",
+          "name",
+          "number",
+          "capacity",
+          "nightlyPrice",
+          "description",
+          "published",
+          "photos"
+        ]
+      },
+      "AdminHotelPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminHotel"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "totalElements": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "size",
+          "totalElements",
+          "totalPages"
+        ]
+      },
+      "AdminRoomPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminRoom"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "totalElements": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "size",
+          "totalElements",
+          "totalPages"
+        ]
+      },
+      "UploadedMedia": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string",
+            "pattern": "^/media/[0-9a-f-]{36}\\.(jpg|png)$"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      }
+    },
+    "parameters": {
+      "Page": {
+        "name": "page",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        },
+        "description": "Zero based."
+      },
+      "Size": {
+        "name": "size",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50,
+          "default": 20
+        },
+        "description": ""
+      },
+      "CheckIn": {
+        "name": "checkInDate",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/LocalDate"
+        },
+        "description": "Supply together with checkOutDate. Hotel-local horizon is evaluated per hotel."
+      },
+      "CheckOut": {
+        "name": "checkOutDate",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/LocalDate"
+        },
+        "description": "Exclusive, 1..30 calendar nights; <=hotelToday+365."
+      },
+      "Guests": {
+        "name": "guests",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 1
+        },
+        "description": "Room capacity must be >= guests."
+      },
+      "MinPrice": {
+        "name": "priceMin",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/NightlyPrice"
+        },
+        "description": "Inclusive nightly price filter, RUB, not stay total."
+      },
+      "MaxPrice": {
+        "name": "priceMax",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/NightlyPrice"
+        },
+        "description": "Inclusive nightly price; >=priceMin."
+      },
+      "PriceSort": {
+        "name": "sort",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "priceAsc",
+            "priceDesc",
+            "idAsc"
+          ],
+          "default": "priceAsc"
+        },
+        "description": "priceAsc: matched minimum price ASC,id ASC; priceDesc: same price DESC,id ASC; idAsc: numeric id ASC."
+      },
+      "CityCode": {
+        "name": "city",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{1,64}$"
+        },
+        "description": "Canonical code from cities. Unknown code is 400, not guessed text matching."
+      },
+      "Slug": {
+        "name": "slug",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "maxLength": 100
+        },
+        "description": "Immutable canonical slug; hidden/missing hotel returns 404."
+      },
+      "RoomId": {
+        "name": "roomId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/Id"
+        },
+        "description": ""
+      },
+      "BookingId": {
+        "name": "bookingId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/Id"
+        },
+        "description": ""
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/IdempotencyKey"
+        },
+        "description": "QUOTE or CREATE_BOOKING operation namespace. Full normalized payload bound durably; see API_CONTRACT.md."
+      }
+    },
+    "securitySchemes": {
+      "session": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__Host-hotel-session",
+        "description": "Target server-side session, Secure HttpOnly SameSite=Lax Path=/, no Domain; 30-min idle /12-h absolute. No HTTP Basic on v2."
+      },
+      "csrf": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-CSRF-TOKEN",
+        "description": "Required on every unsafe v2 operation, including login/register/logout. Obtain via GET auth/csrf. Strict same-origin; no non-browser Basic exemption."
+      }
+    },
+    "responses": {
+      "400": {
+        "description": "Invalid fields, dates, key or malformed JSON. No booking.",
+        "headers": {
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "private, no-store",
+            "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+          },
+          "X-Trace-Id": {
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+          },
+          "Vary": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "Cookie"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Authentication/session required or invalid credentials. No browser Basic challenge.",
+        "headers": {
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "private, no-store",
+            "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+          },
+          "X-Trace-Id": {
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+          },
+          "Vary": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "Cookie"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "CSRF invalid, registration closed or role forbidden.",
+        "headers": {
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "private, no-store",
+            "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+          },
+          "X-Trace-Id": {
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+          },
+          "Vary": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "Cookie"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Missing or not owned resource; indistinguishable.",
+        "headers": {
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "private, no-store",
+            "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+          },
+          "X-Trace-Id": {
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+          },
+          "Vary": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "Cookie"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Business/idempotency/quote conflict; inspect stable code.",
+        "headers": {
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "private, no-store",
+            "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+          },
+          "X-Trace-Id": {
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+          },
+          "Vary": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "Cookie"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "413": {
+        "description": "Body exceeds 16 KiB.",
+        "headers": {
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "private, no-store",
+            "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+          },
+          "X-Trace-Id": {
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+          },
+          "Vary": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "Cookie"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "415": {
+        "description": "Only application/json request bodies accepted.",
+        "headers": {
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "private, no-store",
+            "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+          },
+          "X-Trace-Id": {
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+          },
+          "Vary": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "Cookie"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Rate limited. Honor Retry-After.",
+        "headers": {
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "private, no-store",
+            "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+          },
+          "X-Trace-Id": {
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+          },
+          "Vary": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "Cookie"
+          },
+          "Retry-After": {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Seconds, never attempt automatic rate-limit bypass."
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Unexpected error. After a create, outcome may be unknown; query original operation.",
+        "headers": {
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "private, no-store",
+            "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+          },
+          "X-Trace-Id": {
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+          },
+          "Vary": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "Cookie"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "503": {
+        "description": "Unavailable or recovered REQUEST_ABORTED. If outcome is not established, inspect operation.",
+        "headers": {
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "private, no-store",
+            "description": "All target API responses, including errors, are non-cacheable; never share PII or tokens."
+          },
+          "X-Trace-Id": {
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "description": "Server-generated per HTTP attempt; equals ApiError.traceId on errors."
+          },
+          "Vary": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "Cookie"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      }
+    },
+    "examples": {
+      "stay": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "roomId": "101",
+          "checkInDate": "2026-11-10",
+          "checkOutDate": "2026-11-12",
+          "guests": 2
+        }
+      },
+      "quote": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "quoteToken": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "stay": {
+            "roomId": "101",
+            "checkInDate": "2026-11-10",
+            "checkOutDate": "2026-11-12",
+            "guests": 2
+          },
+          "pricing": {
+            "nightlyPrice": "5000.00",
+            "nights": 2,
+            "totalPrice": "10000.00",
+            "currency": "RUB",
+            "feesIncluded": true
+          },
+          "snapshot": {
+            "hotelId": "10",
+            "hotelName": "Демо: Северный свет",
+            "hotelSlug": "demo-severny-svet",
+            "roomId": "101",
+            "roomName": "Двухместная",
+            "hotelAddress": "Условный адрес, 1",
+            "cityName": "Москва",
+            "timeZone": "Europe/Moscow",
+            "isDemo": true
+          },
+          "termsVersion": "room-101:price-7:terms-1",
+          "createdAt": "2026-10-20T09:00:00Z",
+          "expiresAt": "2026-10-20T09:10:00Z",
+          "cancellationDeadlineAt": "2026-11-09T21:00:00Z",
+          "holdsRoom": false
+        }
+      },
+      "create": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "roomId": "101",
+          "checkInDate": "2026-11-10",
+          "checkOutDate": "2026-11-12",
+          "guests": 2,
+          "quoteToken": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        }
+      },
+      "receipt": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "bookingId": "9001",
+          "statusAtCreation": "CONFIRMED",
+          "createdAt": "2026-10-20T09:02:00Z",
+          "stay": {
+            "roomId": "101",
+            "checkInDate": "2026-11-10",
+            "checkOutDate": "2026-11-12",
+            "guests": 2
+          },
+          "pricing": {
+            "nightlyPrice": "5000.00",
+            "nights": 2,
+            "totalPrice": "10000.00",
+            "currency": "RUB",
+            "feesIncluded": true
+          },
+          "snapshot": {
+            "hotelId": "10",
+            "hotelName": "Демо: Северный свет",
+            "hotelSlug": "demo-severny-svet",
+            "roomId": "101",
+            "roomName": "Двухместная",
+            "hotelAddress": "Условный адрес, 1",
+            "cityName": "Москва",
+            "timeZone": "Europe/Moscow",
+            "isDemo": true
+          },
+          "cancellationDeadlineAt": "2026-11-09T21:00:00Z",
+          "bookingUrl": "/api/v2/me/bookings/9001"
+        }
+      },
+      "booking": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "id": "9001",
+          "roomId": "101",
+          "checkInDate": "2026-11-10",
+          "checkOutDate": "2026-11-12",
+          "status": "CONFIRMED",
+          "cancelledAt": null,
+          "cancellation": {
+            "canCancel": true,
+            "deadlineAt": "2026-11-09T21:00:00Z",
+            "timeZone": "Europe/Moscow",
+            "reason": null
+          },
+          "origin": "V2",
+          "guests": 2,
+          "pricing": {
+            "nightlyPrice": "5000.00",
+            "nights": 2,
+            "totalPrice": "10000.00",
+            "currency": "RUB",
+            "feesIncluded": true
+          },
+          "snapshot": {
+            "hotelId": "10",
+            "hotelName": "Демо: Северный свет",
+            "hotelSlug": "demo-severny-svet",
+            "roomId": "101",
+            "roomName": "Двухместная",
+            "hotelAddress": "Условный адрес, 1",
+            "cityName": "Москва",
+            "timeZone": "Europe/Moscow",
+            "isDemo": true
+          },
+          "createdAt": "2026-10-20T09:02:00Z"
+        }
+      },
+      "cancelled": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "id": "9001",
+          "roomId": "101",
+          "checkInDate": "2026-11-10",
+          "checkOutDate": "2026-11-12",
+          "status": "CANCELLED",
+          "cancelledAt": "2026-10-20T10:00:00Z",
+          "cancellation": {
+            "canCancel": false,
+            "deadlineAt": "2026-11-09T21:00:00Z",
+            "timeZone": "Europe/Moscow",
+            "reason": "ALREADY_CANCELLED"
+          },
+          "origin": "V2",
+          "guests": 2,
+          "pricing": {
+            "nightlyPrice": "5000.00",
+            "nights": 2,
+            "totalPrice": "10000.00",
+            "currency": "RUB",
+            "feesIncluded": true
+          },
+          "snapshot": {
+            "hotelId": "10",
+            "hotelName": "Демо: Северный свет",
+            "hotelSlug": "demo-severny-svet",
+            "roomId": "101",
+            "roomName": "Двухместная",
+            "hotelAddress": "Условный адрес, 1",
+            "cityName": "Москва",
+            "timeZone": "Europe/Moscow",
+            "isDemo": true
+          },
+          "createdAt": "2026-10-20T09:02:00Z"
+        }
+      },
+      "legacyUnknown": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "id": "41",
+          "roomId": "101",
+          "checkInDate": "2026-11-10",
+          "checkOutDate": "2026-11-12",
+          "status": "CONFIRMED",
+          "cancelledAt": null,
+          "cancellation": {
+            "canCancel": false,
+            "deadlineAt": null,
+            "timeZone": null,
+            "reason": "LEGACY_TIMEZONE_UNKNOWN"
+          },
+          "origin": "LEGACY",
+          "guests": null,
+          "pricing": null,
+          "snapshot": null,
+          "createdAt": null,
+          "currentCatalogDisplay": {
+            "hotelName": "Текущее имя отеля",
+            "roomName": "Текущее имя комнаты",
+            "source": "CURRENT_CATALOG"
+          }
+        }
+      },
+      "csrf": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "headerName": "X-CSRF-TOKEN",
+          "token": "demonstration-token-not-a-real-credential-0123456789",
+          "expiresAt": "2026-10-20T09:30:00Z",
+          "registrationMode": "CLOSED"
+        }
+      },
+      "session": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "user": {
+            "id": "7",
+            "username": "demo-user",
+            "email": "demo@example.invalid",
+            "emailVerified": false,
+            "roles": [
+              "USER"
+            ],
+            "isRestrictedDemoAccount": true
+          },
+          "idleExpiresAt": "2026-10-20T09:30:00Z",
+          "absoluteExpiresAt": "2026-10-20T21:00:00Z"
+        }
+      },
+      "hotelPage": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "items": [
+            {
+              "id": "10",
+              "slug": "demo-severny-svet",
+              "name": "Демо: Северный свет",
+              "cityCode": "moscow",
+              "cityName": "Москва",
+              "timeZone": "Europe/Moscow",
+              "isDemo": true,
+              "photos": [],
+              "fromPrice": {
+                "nightlyPrice": "5000.00",
+                "nights": 2,
+                "totalPrice": "10000.00",
+                "currency": "RUB",
+                "feesIncluded": true
+              },
+              "availabilityEvaluated": true,
+              "matchedRoomCount": 1
+            }
+          ],
+          "page": 0,
+          "size": 20,
+          "totalElements": 1,
+          "totalPages": 1,
+          "sort": "priceAsc",
+          "evaluatedAt": "2026-10-20T09:00:00Z",
+          "warnings": []
+        }
+      },
+      "roomPage": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "items": [
+            {
+              "id": "101",
+              "hotelId": "10",
+              "hotelSlug": "demo-severny-svet",
+              "name": "Двухместная",
+              "description": "Вымышленная комната для демонстрации",
+              "capacity": 2,
+              "photos": [],
+              "pricing": {
+                "nightlyPrice": "5000.00",
+                "nights": 2,
+                "totalPrice": "10000.00",
+                "currency": "RUB",
+                "feesIncluded": true
+              },
+              "availability": "AVAILABLE",
+              "unavailableReason": null,
+              "dateLimits": {
+                "hotelToday": "2026-10-20",
+                "minCheckInDate": "2026-10-21",
+                "maxCheckOutDate": "2027-10-20",
+                "maxNights": 30,
+                "timeZone": "Europe/Moscow"
+              }
+            }
+          ],
+          "page": 0,
+          "size": 20,
+          "totalElements": 1,
+          "totalPages": 1,
+          "sort": "priceAsc",
+          "evaluatedAt": "2026-10-20T09:00:00Z"
+        }
+      },
+      "cityList": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "items": [
+            {
+              "code": "moscow",
+              "name": "Москва",
+              "timeZones": [
+                "Europe/Moscow"
+              ],
+              "dateLimits": [
+                {
+                  "hotelToday": "2026-10-20",
+                  "minCheckInDate": "2026-10-21",
+                  "maxCheckOutDate": "2027-10-20",
+                  "maxNights": 30,
+                  "timeZone": "Europe/Moscow"
+                }
+              ]
+            }
+          ],
+          "evaluatedAt": "2026-10-20T09:00:00Z"
+        }
+      },
+      "hotel": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "id": "10",
+          "slug": "demo-severny-svet",
+          "name": "Демо: Северный свет",
+          "cityCode": "moscow",
+          "cityName": "Москва",
+          "timeZone": "Europe/Moscow",
+          "isDemo": true,
+          "photos": [],
+          "description": "Вымышленный отель. Заселение не предусмотрено.",
+          "address": "Условный адрес, 1",
+          "demoLocation": null,
+          "dateLimits": {
+            "hotelToday": "2026-10-20",
+            "minCheckInDate": "2026-10-21",
+            "maxCheckOutDate": "2027-10-20",
+            "maxNights": 30,
+            "timeZone": "Europe/Moscow"
+          }
+        }
+      },
+      "room": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "id": "101",
+          "hotelId": "10",
+          "hotelSlug": "demo-severny-svet",
+          "name": "Двухместная",
+          "description": "Вымышленная комната для демонстрации",
+          "capacity": 2,
+          "photos": [],
+          "pricing": {
+            "nightlyPrice": "5000.00",
+            "nights": 2,
+            "totalPrice": "10000.00",
+            "currency": "RUB",
+            "feesIncluded": true
+          },
+          "availability": "AVAILABLE",
+          "unavailableReason": null,
+          "dateLimits": {
+            "hotelToday": "2026-10-20",
+            "minCheckInDate": "2026-10-21",
+            "maxCheckOutDate": "2027-10-20",
+            "maxNights": 30,
+            "timeZone": "Europe/Moscow"
+          }
+        }
+      },
+      "user": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "id": "7",
+          "username": "demo-user",
+          "email": "demo@example.invalid",
+          "emailVerified": false,
+          "roles": [
+            "USER"
+          ],
+          "isRestrictedDemoAccount": true
+        }
+      },
+      "processingOperation": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "key": "b084e56f-7abc-4e84-b9ae-493d102a38b9",
+          "operation": "CREATE_BOOKING",
+          "createdAt": "2026-10-20T09:00:00Z",
+          "state": "PROCESSING",
+          "nextCheckAfterSeconds": 2
+        }
+      },
+      "succeededOperation": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "key": "b084e56f-7abc-4e84-b9ae-493d102a38b9",
+          "operation": "CREATE_BOOKING",
+          "createdAt": "2026-10-20T09:00:00Z",
+          "state": "SUCCEEDED",
+          "completedAt": "2026-10-20T09:02:00Z",
+          "receipt": {
+            "bookingId": "9001",
+            "statusAtCreation": "CONFIRMED",
+            "createdAt": "2026-10-20T09:02:00Z",
+            "stay": {
+              "roomId": "101",
+              "checkInDate": "2026-11-10",
+              "checkOutDate": "2026-11-12",
+              "guests": 2
+            },
+            "pricing": {
+              "nightlyPrice": "5000.00",
+              "nights": 2,
+              "totalPrice": "10000.00",
+              "currency": "RUB",
+              "feesIncluded": true
+            },
+            "snapshot": {
+              "hotelId": "10",
+              "hotelName": "Демо: Северный свет",
+              "hotelSlug": "demo-severny-svet",
+              "roomId": "101",
+              "roomName": "Двухместная",
+              "hotelAddress": "Условный адрес, 1",
+              "cityName": "Москва",
+              "timeZone": "Europe/Moscow",
+              "isDemo": true
+            },
+            "cancellationDeadlineAt": "2026-11-09T21:00:00Z",
+            "bookingUrl": "/api/v2/me/bookings/9001"
+          }
+        }
+      },
+      "failedOperation": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "key": "b084e56f-7abc-4e84-b9ae-493d102a38b9",
+          "operation": "CREATE_BOOKING",
+          "createdAt": "2026-10-20T09:00:00Z",
+          "state": "FAILED",
+          "completedAt": "2026-10-20T09:02:00Z",
+          "errorCode": "ROOM_UNAVAILABLE",
+          "errorStatus": 409,
+          "error": {
+            "status": 409,
+            "code": "ROOM_UNAVAILABLE",
+            "message": "Комната недоступна на выбранные даты.",
+            "fieldErrors": [],
+            "traceId": "0123456789abcdef0123456789abcdef",
+            "details": {}
+          }
+        }
+      },
+      "fencedOperation": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "key": "b084e56f-7abc-4e84-b9ae-493d102a38b9",
+          "operation": "CREATE_BOOKING",
+          "createdAt": "2026-10-20T09:00:00Z",
+          "state": "FAILED",
+          "completedAt": "2026-10-20T09:00:00Z",
+          "errorCode": "REQUEST_ABORTED",
+          "errorStatus": 503,
+          "error": {
+            "status": 503,
+            "code": "REQUEST_ABORTED",
+            "message": "Исходная операция не была выполнена. Подтвердите новый расчёт перед новой попыткой.",
+            "fieldErrors": [],
+            "traceId": "0123456789abcdef0123456789abcdef",
+            "details": {}
+          }
+        }
+      },
+      "validation": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "status": 400,
+          "code": "VALIDATION_FAILED",
+          "message": "Проверьте поля запроса.",
+          "fieldErrors": [
+            {
+              "field": "guests",
+              "code": "OUT_OF_RANGE",
+              "message": "Число гостей превышает вместимость."
+            }
+          ],
+          "traceId": "0123456789abcdef0123456789abcdef",
+          "details": {}
+        }
+      },
+      "priceChanged": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "status": 409,
+          "code": "PRICE_CHANGED",
+          "message": "Цена изменилась. Проверьте новый расчёт и подтвердите снова.",
+          "fieldErrors": [],
+          "traceId": "0123456789abcdef0123456789abcdef",
+          "details": {
+            "replacementQuote": {
+              "quoteToken": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+              "stay": {
+                "roomId": "101",
+                "checkInDate": "2026-11-10",
+                "checkOutDate": "2026-11-12",
+                "guests": 2
+              },
+              "pricing": {
+                "nightlyPrice": "5500.00",
+                "nights": 2,
+                "totalPrice": "11000.00",
+                "currency": "RUB",
+                "feesIncluded": true
+              },
+              "snapshot": {
+                "hotelId": "10",
+                "hotelName": "Демо: Северный свет",
+                "hotelSlug": "demo-severny-svet",
+                "roomId": "101",
+                "roomName": "Двухместная",
+                "hotelAddress": "Условный адрес, 1",
+                "cityName": "Москва",
+                "timeZone": "Europe/Moscow",
+                "isDemo": true
+              },
+              "termsVersion": "room-101:price-8:terms-1",
+              "createdAt": "2026-10-20T09:00:00Z",
+              "expiresAt": "2026-10-20T09:10:00Z",
+              "cancellationDeadlineAt": "2026-11-09T21:00:00Z",
+              "holdsRoom": false
+            }
+          }
+        }
+      },
+      "roomUnavailable": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "status": 409,
+          "code": "ROOM_UNAVAILABLE",
+          "message": "Комната недоступна на выбранные даты.",
+          "fieldErrors": [],
+          "traceId": "0123456789abcdef0123456789abcdef",
+          "details": {}
+        }
+      },
+      "quoteExpired": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "status": 409,
+          "code": "QUOTE_EXPIRED",
+          "message": "Расчёт истёк. Получите новый расчёт.",
+          "fieldErrors": [],
+          "traceId": "0123456789abcdef0123456789abcdef",
+          "details": {}
+        }
+      },
+      "keyConflict": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "status": 409,
+          "code": "IDEMPOTENCY_CONFLICT",
+          "message": "Сначала проверьте результат исходной операции.",
+          "fieldErrors": [],
+          "traceId": "0123456789abcdef0123456789abcdef",
+          "details": {
+            "operationUrl": "/api/v2/me/booking-operations/result"
+          }
+        }
+      },
+      "notFound": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "status": 404,
+          "code": "NOT_FOUND",
+          "message": "Объект не найден.",
+          "fieldErrors": [],
+          "traceId": "0123456789abcdef0123456789abcdef",
+          "details": {}
+        }
+      },
+      "cancelClosed": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "status": 409,
+          "code": "CANCELLATION_CLOSED",
+          "message": "Срок отмены истёк.",
+          "fieldErrors": [],
+          "traceId": "0123456789abcdef0123456789abcdef",
+          "details": {}
+        }
+      },
+      "registrationClosed": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "status": 403,
+          "code": "REGISTRATION_CLOSED",
+          "message": "Публичная регистрация пока закрыта.",
+          "fieldErrors": [],
+          "traceId": "0123456789abcdef0123456789abcdef",
+          "details": {}
+        }
+      },
+      "processing": {
+        "summary": "Illustrative fixture; not live data",
+        "value": {
+          "status": 409,
+          "code": "OPERATION_IN_PROGRESS",
+          "message": "Результат операции ещё проверяется.",
+          "fieldErrors": [],
+          "traceId": "0123456789abcdef0123456789abcdef",
+          "details": {
+            "retryAfterSeconds": 2,
+            "operationUrl": "/api/v2/me/booking-operations/result"
+          }
+        }
+      }
+    }
+  }
+}

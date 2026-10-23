@@ -1,0 +1,135 @@
+.booking-review {
+  padding-bottom: 30px;
+}
+.review-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
+}
+.booking-total {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+}
+.booking-facts {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+.booking-facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 11px;
+}
+.booking-facts dt {
+  color: var(--muted);
+}
+.booking-facts dd {
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.consent {
+  display: flex;
+  align-items: start;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 13px;
+  min-height: 44px;
+  line-height: 1.6;
+}
+.consent input {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  accent-color: var(--accent);
+}
+.booking-list {
+  display: grid;
+  gap: 20px;
+}
+.booking-list .panel,
+.booking-detail .panel {
+  padding: 24px;
+}
+.booking-summary-title {
+  margin-bottom: 0;
+  font-size: 24px;
+}
+.booking-summary-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.booking-summary-price p {
+  margin-bottom: 0;
+}
+.booking-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.booking-filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: end;
+}
+.booking-filters label {
+  min-width: 160px;
+}
+.booking-status {
+  font-weight: 600;
+}
+.room-card .button {
+  width: 100%;
+}
+.badge[data-status="CONFIRMED"] {
+  border-color: #cbe4d6;
+  background: #edf8f1;
+  color: #32744e;
+}
+.badge[data-status="CANCELLED"] {
+  border-color: var(--line);
+  background: #f2f2f5;
+  color: #777780;
+}
+@media (max-width: 800px) {
+  .review-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .booking-facts > div {
+    flex-wrap: wrap;
+  }
+  .booking-total {
+    font-size: 30px;
+  }
+}
+@media (max-width: 600px) {
+  .booking-list .panel,
+  .booking-detail .panel {
+    padding: 20px;
+  }
+  .booking-facts {
+    font-size: 13px;
+  }
+  .booking-facts dd {
+    text-align: left;
+  }
+  .booking-filters {
+    align-items: stretch;
+  }
+  .booking-filters label {
+    flex: 1;
+  }
+  .booking-filters button {
+    align-self: end;
+  }
+}

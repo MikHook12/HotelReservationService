@@ -2,6 +2,7 @@ package com.kryukow.HotelReservationService.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kryukow.HotelReservationService.dto.event.BookingCreatedEvent;
+import com.kryukow.HotelReservationService.dto.event.BookingCancelledEvent;
 import com.kryukow.HotelReservationService.dto.event.UserRegisteredEvent;
 import com.kryukow.HotelReservationService.model.EventType;
 import com.kryukow.HotelReservationService.model.OutboxEvent;
@@ -38,4 +39,31 @@ class DomainEventPublisherTest {
         assertThat(booking.getTopic()).isEqualTo("booking-events");
         assertThat(mapper.readValue(booking.getPayload(), BookingCreatedEvent.class).checkInDate()).isEqualTo(checkIn);
     }
+
+    @Test
+    void storesVersionedCancellationOnBookingTopicWithItsOwnEventType() throws Exception {
+        LocalDate checkIn = LocalDate.of(2027, 1, 2);
+        publisher.publishBookingCancelled(99L, 42L, 7L, checkIn, checkIn.plusDays(2));
+        ArgumentCaptor<OutboxEvent> captor = ArgumentCaptor.forClass(OutboxEvent.class);
+        verify(repository).save(captor.capture());
+        OutboxEvent event = captor.getValue();
+        assertThat(event.getId()).isNotNull();
+        assertThat(event.getTopic()).isEqualTo("booking-events");
+        assertThat(event.getEventType()).isEqualTo(EventType.BOOKING_CANCELLED);
+        assertThat(event.getPublishedAt()).isNull();
+        BookingCancelledEvent dto = mapper.readValue(event.getPayload(), BookingCancelledEvent.class);
+        assertThat(dto.schemaVersion()).isEqualTo(1);
+        assertThat(dto.eventType()).isEqualTo(EventType.BOOKING_CANCELLED);
+        assertThat(dto.bookingId()).isEqualTo(99L);
+        assertThat(dto.userId()).isEqualTo(42L);
+        assertThat(dto.roomId()).isEqualTo(7L);
+        assertThat(dto.checkInDate()).isEqualTo(checkIn);
+        assertThat(dto.timestamp()).isEqualTo(event.getCreatedAt());
+        var json = mapper.readTree(event.getPayload());
+        assertThat(json.size()).isEqualTo(8);
+        assertThat(json.has("revenue")).isFalse();
+        assertThat(json.has("payment")).isFalse();
+        assertThat(json.has("amount")).isFalse();
+    }
+
 }

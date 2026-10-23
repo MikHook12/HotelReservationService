@@ -94,12 +94,14 @@ public class RoomService {
     @Transactional
     public RoomResponseDto update(Long id, RoomCreateUpdateRequest request) {
         log.info("Обновление комнаты {}", id);
-
-        Room room = roomRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Room", id));
-
+        // Match Hotel -> Room lock order used by deletion; booking writers lock this same Room.
         Hotel hotel = hotelRepository.lockById(request.getHotelId())
                 .orElseThrow(() -> new EntityNotFoundException("Hotel", request.getHotelId()));
+        Room room = roomRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new EntityNotFoundException("Room", id));
+        if (!room.getHotel().getId().equals(hotel.getId()) && availabilityRepository.hasBookings(List.of(id))) {
+            throw new BookingHistoryConflictException("room");
+        }
 
         room.setName(request.getName());
         room.setDescription(request.getDescription());

@@ -1,6 +1,15 @@
 spring:
   config:
     import: optional:file:.env[.properties]
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+  session:
+    store-type: jdbc
+    timeout: 30m
+    jdbc:
+      initialize-schema: never
   application:
     name: HotelReservationService
   datasource:
@@ -61,3 +70,8 @@ app:
       name: ${BOOTSTRAP_ADMIN_NAME:}
       email: ${BOOTSTRAP_ADMIN_EMAIL:}
       password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+
+  web:
+    v2:
+      enabled: ${BROWSER_API_ENABLED:false}
+      quote-encryption-key: ${BROWSER_QUOTE_ENCRYPTION_KEY:}

@@ -85,8 +85,10 @@ public class HotelService {
     public HotelResponseDto update(Long id, HotelCreateUpdateRequest request) {
         log.info("Обновить отель с ID: {}", id);
 
-        Hotel hotel = repository.findById(id)
+        Hotel hotel = repository.lockById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Hotel", id));
+
+        availabilityRepository.lockByHotelId(id);
 
         hotel.setName(request.getName());
         hotel.setTitle(request.getTitle());

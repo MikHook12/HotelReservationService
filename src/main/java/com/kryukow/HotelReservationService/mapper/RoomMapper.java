@@ -12,6 +12,9 @@ public interface RoomMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "hotel", ignore = true)
     @Mapping(target = "bookings", ignore = true)
+    @Mapping(target = "published", ignore = true)
+    @Mapping(target = "photos", ignore = true)
+    @org.mapstruct.Mapping(target = "version", ignore = true)
     Room toEntity(RoomCreateUpdateRequest roomRequestDto);
 
     @Mapping(target = "availabilityFrom", ignore = true)

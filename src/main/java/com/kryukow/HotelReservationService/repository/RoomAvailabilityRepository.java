@@ -21,7 +21,7 @@ public interface RoomAvailabilityRepository extends Repository<Room, Long> {
     }
 
     @Query("select b.room.id as roomId, b.checkInDate as checkInDate, b.checkOutDate as checkOutDate " +
-            "from Booking b where b.room.id in :ids and b.checkInDate < :until and b.checkOutDate > :from")
+            "from Booking b where b.room.id in :ids and b.status = 'CONFIRMED' and b.checkInDate < :until and b.checkOutDate > :from")
     List<Interval> findIntervals(@Param("ids") Collection<Long> ids, @Param("from") LocalDate from,
                                  @Param("until") LocalDate until);
 

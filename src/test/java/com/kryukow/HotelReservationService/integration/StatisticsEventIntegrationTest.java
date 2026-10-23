@@ -2,6 +2,10 @@ package com.kryukow.HotelReservationService.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kryukow.HotelReservationService.dto.event.BookingCreatedEvent;
+import com.kryukow.HotelReservationService.dto.event.BookingCancelledEvent;
+import com.kryukow.HotelReservationService.model.EventType;
+import com.opencsv.CSVReader;
+import java.io.StringReader;
 import com.kryukow.HotelReservationService.dto.event.UserRegisteredEvent;
 import com.kryukow.HotelReservationService.kafka.OutboxEventDispatcher;
 import com.kryukow.HotelReservationService.kafka.StatisticsEventListener;
@@ -49,6 +53,13 @@ class StatisticsEventIntegrationTest extends BaseIntegrationTest {
     @Autowired @Qualifier("statisticsDltKafkaTemplate") KafkaTemplate<String, Object> dltKafka;
     @Autowired ObjectMapper objectMapper;
     @Autowired Environment environment;
+    @Autowired org.springframework.kafka.listener.DefaultErrorHandler errorHandler;
+
+    @org.junit.jupiter.api.BeforeEach
+    void reportConsumerFailures() {
+        errorHandler.setRetryListeners((record, exception, attempt) ->
+                org.slf4j.LoggerFactory.getLogger(getClass()).warn("Kafka delivery attempt {} for {}", attempt, record.key(), exception));
+    }
 
     @Test
     void committedOutboxFlowsThroughKafkaAndRedeliveryRemainsOneMongoDocument() throws Exception {
@@ -57,7 +68,7 @@ class StatisticsEventIntegrationTest extends BaseIntegrationTest {
             publisher.publishUserRegistered(1234567L);
         });
         OutboxEvent event = outbox.findAll().get(0);
-        new OutboxEventDispatcher(outbox, kafka, objectMapper, transactionManager, 20, 10).dispatch();
+        dispatchUntilPublished(List.of(event));
         await().atMost(Duration.ofSeconds(20)).untilAsserted(() ->
                 assertThat(statistics.findById(event.getId().toString())).isPresent());
         UserRegisteredEvent payload = objectMapper.readValue(event.getPayload(), UserRegisteredEvent.class);
@@ -78,6 +89,70 @@ class StatisticsEventIntegrationTest extends BaseIntegrationTest {
         service.exportToCsv(output);
         assertThat(output.toString(StandardCharsets.UTF_8))
                 .contains("\"" + key + "\",\"BOOKING_CREATED\",\"42\",\"7\",\"2027-01-02\",\"2027-01-03\"");
+    }
+
+    @Test
+    void bookingCreationAndVersionedCancellationStayDistinctThroughKafkaMongoAndLegacyCsv() throws Exception {
+        LocalDate checkIn = LocalDate.of(2027, 1, 2);
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            outbox.deleteAll();
+            publisher.publishBookingCreated(42L, 7L, checkIn, checkIn.plusDays(2));
+            publisher.publishBookingCancelled(99L, 42L, 7L, checkIn, checkIn.plusDays(2));
+        });
+        List<OutboxEvent> pending = outbox.findAll();
+        OutboxEvent created = pending.stream().filter(event -> event.getEventType() == EventType.BOOKING_CREATED)
+                .findFirst().orElseThrow();
+        OutboxEvent cancelled = pending.stream().filter(event -> event.getEventType() == EventType.BOOKING_CANCELLED)
+                .findFirst().orElseThrow();
+        String createdId = created.getId().toString();
+        String cancelledId = cancelled.getId().toString();
+        dispatchUntilPublished(pending);
+        await().atMost(Duration.ofSeconds(20)).untilAsserted(() -> {
+            assertThat(statistics.findById(createdId)).hasValueSatisfying(stat ->
+                    assertThat(stat.getEventType()).isEqualTo(EventType.BOOKING_CREATED));
+            assertThat(statistics.findById(cancelledId)).hasValueSatisfying(stat -> {
+                assertThat(stat.getEventType()).isEqualTo(EventType.BOOKING_CANCELLED);
+                assertThat(stat.getPayload()).containsEntry("bookingId", 99L).containsEntry("schemaVersion", 1)
+                        .doesNotContainKeys("payment", "revenue", "amount");
+            });
+        });
+        BookingCancelledEvent payload = objectMapper.readValue(cancelled.getPayload(), BookingCancelledEvent.class);
+        kafka.send("booking-events", cancelledId, payload).get();
+        listener.handleBookingEvent(payload, cancelledId);
+        var saved = statistics.findAllById(List.of(createdId, cancelledId));
+        assertThat(saved).hasSize(2);
+        assertThat(saved).extracting(com.kryukow.HotelReservationService.model.StatisticEvent::getEventType)
+                .containsExactlyInAnyOrder(EventType.BOOKING_CREATED, EventType.BOOKING_CANCELLED);
+        assertThat(outbox.findById(cancelled.getId()).orElseThrow().getPublishedAt()).isNotNull();
+
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        service.exportToCsv(output);
+        try (CSVReader reader = new CSVReader(new StringReader(output.toString(StandardCharsets.UTF_8)))) {
+            var rows = reader.readAll();
+            assertThat(rows.get(0)).containsExactly("id", "eventType", "userId", "roomId", "checkInDate", "checkOutDate", "timestamp");
+            String[] row = rows.stream().filter(values -> values[0].equals(cancelledId)).findFirst().orElseThrow();
+            assertThat(row).hasSize(7);
+            assertThat(row[1]).isEqualTo("BOOKING_CANCELLED");
+            assertThat(row[2]).isEqualTo("42");
+            assertThat(row[3]).isEqualTo("7");
+            assertThat(row[4]).isEqualTo("2027-01-02");
+            assertThat(row[5]).isEqualTo("2027-01-04");
+            assertThat(row[6]).isNotBlank();
+        }
+        outbox.deleteAll();
+    }
+
+    private void dispatchUntilPublished(List<OutboxEvent> events) {
+        var dispatcher = new OutboxEventDispatcher(outbox, kafka, objectMapper, transactionManager, 20, 10);
+        // The scheduler is disabled for isolation. Model its repeated polls rather than assuming
+        // the first poll sees every JVM-created nextAttemptAt as due on the database clock.
+        await().pollInterval(Duration.ofMillis(100)).atMost(Duration.ofSeconds(20)).untilAsserted(() -> {
+            dispatcher.dispatch();
+            for (OutboxEvent event : events) {
+                assertThat(outbox.findById(event.getId())).hasValueSatisfying(saved ->
+                        assertThat(saved.getPublishedAt()).as("Kafka ack persisted for %s", saved.getId()).isNotNull());
+            }
+        });
     }
 
     @Test
