@@ -2,6 +2,8 @@ package com.kryukow.HotelReservationService.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kryukow.HotelReservationService.dto.event.UserRegisteredEvent;
+import com.kryukow.HotelReservationService.dto.event.BookingCancelledEvent;
+import java.time.LocalDate;
 import com.kryukow.HotelReservationService.model.EventType;
 import com.kryukow.HotelReservationService.model.OutboxEvent;
 import com.kryukow.HotelReservationService.repository.OutboxEventRepository;
@@ -111,4 +113,24 @@ class OutboxEventDispatcherTest {
         assertThat(event.getAttempts()).isEqualTo(1);
         verifyNoInteractions(kafka);
     }
+
+    @Test
+    void cancellationRetainsSchemaAndTypeThroughDispatcherAndWaitsForAck() throws Exception {
+        LocalDate date = LocalDate.of(2027, 1, 2);
+        BookingCancelledEvent dto = new BookingCancelledEvent(99L, 42L, 7L, date, date.plusDays(2),
+                LocalDateTime.now(ZoneOffset.UTC));
+        OutboxEvent event = event();
+        event.setTopic("booking-events");
+        event.setEventType(EventType.BOOKING_CANCELLED);
+        event.setPayload(mapper.writeValueAsString(dto));
+        when(repository.lockPendingBatch(2)).thenReturn(List.of(event));
+        when(kafka.send(eq("booking-events"), eq(event.getId().toString()), eq(dto))).thenAnswer(call -> {
+            assertThat(event.getPublishedAt()).isNull();
+            return CompletableFuture.completedFuture(null);
+        });
+        dispatcher.dispatch();
+        assertThat(event.getPublishedAt()).isNotNull();
+        verify(kafka).send("booking-events", event.getId().toString(), dto);
+    }
+
 }

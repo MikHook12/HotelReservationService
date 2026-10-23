@@ -3,6 +3,7 @@ package com.kryukow.HotelReservationService.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kryukow.HotelReservationService.dto.event.BookingCreatedEvent;
+import com.kryukow.HotelReservationService.dto.event.BookingCancelledEvent;
 import com.kryukow.HotelReservationService.dto.event.UserRegisteredEvent;
 import com.kryukow.HotelReservationService.model.EventType;
 import com.kryukow.HotelReservationService.model.OutboxEvent;
@@ -33,6 +34,13 @@ public class DomainEventPublisher {
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         store("booking-events", EventType.BOOKING_CREATED,
                 new BookingCreatedEvent(userId, roomId, checkInDate, checkOutDate, now), now);
+    }
+
+    public void publishBookingCancelled(Long bookingId, Long userId, Long roomId,
+                                        LocalDate checkInDate, LocalDate checkOutDate) {
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+        store("booking-events", EventType.BOOKING_CANCELLED,
+                new BookingCancelledEvent(bookingId, userId, roomId, checkInDate, checkOutDate, now), now);
     }
 
     private void store(String topic, EventType type, Object payload, LocalDateTime now) {

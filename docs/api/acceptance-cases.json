@@ -1,0 +1,912 @@
+{
+  "contractVersion": "0.1.0-draft",
+  "status": "requirements-not-executed",
+  "note": "Acceptance specification, not execution evidence. Empty operationIds denote migration checks outside target OpenAPI paths.",
+  "cases": [
+    {
+      "id": "AC-01",
+      "name": "Eligible-room minimum price",
+      "operationIds": [
+        "searchHotels"
+      ],
+      "given": "Дешёвая комната занята/мала, более дорогая подходит.",
+      "when": "Поиск на две ночи, guests=2, nightly price range.",
+      "then": "Отель включён лишь если EXISTS подходящая свободная комната; цена/сортировка относятся к этому же набору.",
+      "expectedHttp": [
+        200
+      ],
+      "expectedCodes": [],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-02",
+      "name": "No dates means no promise",
+      "operationIds": [
+        "searchHotels",
+        "getPublicRoom"
+      ],
+      "given": "Даты отсутствуют.",
+      "when": "Прочитать каталог/комнату.",
+      "then": "availabilityEvaluated=false/NOT_EVALUATED, nights=1 indicative; никаких утверждений доступности.",
+      "expectedHttp": [
+        200
+      ],
+      "expectedCodes": [],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-03",
+      "name": "Hotel and room lists intentionally differ",
+      "operationIds": [
+        "searchHotels",
+        "listHotelRooms"
+      ],
+      "given": "Все matching комнаты отеля заняты.",
+      "when": "Поиск отелей и список его комнат.",
+      "then": "Поиск не включает отель; список его комнат показывает UNAVAILABLE без чужих данных.",
+      "expectedHttp": [
+        200
+      ],
+      "expectedCodes": [],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-04",
+      "name": "Date pair and inclusive filters",
+      "operationIds": [
+        "searchHotels"
+      ],
+      "given": "Существует подходящая комната.",
+      "when": "Одна дата или priceMin>priceMax; затем диапазон ровно по цене.",
+      "then": "Неверный запрос 400 с fieldErrors, точная граница включается в поиск.",
+      "expectedHttp": [
+        400,
+        200
+      ],
+      "expectedCodes": [
+        "VALIDATION_FAILED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-05",
+      "name": "Unknown city/sort/query rejected",
+      "operationIds": [
+        "searchHotels"
+      ],
+      "given": "Поддерживается только city code из cities.",
+      "when": "Неизвестный code/sort/лишний query, повтор scalar параметра.",
+      "then": "400; сервер не угадывает иной поиск и не заменяет условия.",
+      "expectedHttp": [
+        400
+      ],
+      "expectedCodes": [
+        "VALIDATION_FAILED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-06",
+      "name": "Pagination and deterministic tiebreak",
+      "operationIds": [
+        "searchHotels",
+        "listHotelRooms",
+        "listOwnBookings"
+      ],
+      "given": "Несколько равных цен.",
+      "when": "Повтор page/sort; отрицательная page/size=51; дальняя страница.",
+      "then": "Равные цены по numeric id; invalid 400; дальняя страница 200 empty.",
+      "expectedHttp": [
+        200,
+        400
+      ],
+      "expectedCodes": [
+        "VALIDATION_FAILED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-07",
+      "name": "Hotel-zone date limits",
+      "operationIds": [
+        "listCities",
+        "quoteBooking"
+      ],
+      "given": "Управляемые часы по TZ отеля.",
+      "when": "Сегодня, завтра; 1/30/31 ночей; checkout ровно today+365 и +366.",
+      "then": "Сегодня/31/+366 отклонены, завтра/1/30 и valid inclusive horizon разрешены.",
+      "expectedHttp": [
+        201,
+        400
+      ],
+      "expectedCodes": [
+        "DATE_RANGE_INVALID"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-08",
+      "name": "Multi-zone search date coverage",
+      "operationIds": [
+        "searchHotels"
+      ],
+      "given": "На одном instant у двух отелей разные local dates.",
+      "when": "Поиск без города на границе horizon.",
+      "then": "Каждый TZ проверен отдельно; частичные исключения имеют warning; все-invalid даёт DATE_RANGE_INVALID, даты не сдвинуты.",
+      "expectedHttp": [
+        200,
+        400
+      ],
+      "expectedCodes": [
+        "DATE_RANGE_INVALID"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-09",
+      "name": "Decimal and DST nights",
+      "operationIds": [
+        "quoteBooking"
+      ],
+      "given": "Смена offset внутри проживания, nightlyPrice=5000.00.",
+      "when": "Две календарные ночи, несмотря на 47/49 часов.",
+      "then": "nights=2,totalPrice=\"10000.00\",RUB; нет float/цены за гостя.",
+      "expectedHttp": [
+        201
+      ],
+      "expectedCodes": [],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-10",
+      "name": "Adjacent intervals",
+      "operationIds": [
+        "createBooking"
+      ],
+      "given": "CONFIRMED checkout=12 ноября.",
+      "when": "Второй checkout совпадает с checkIn первого или checkIn=12.",
+      "then": "[in,out) позволяет соседство; непустое пересечение запрещается.",
+      "expectedHttp": [
+        201,
+        409
+      ],
+      "expectedCodes": [
+        "ROOM_UNAVAILABLE"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-11",
+      "name": "One physical room capacity",
+      "operationIds": [
+        "quoteBooking",
+        "createBooking"
+      ],
+      "given": "capacity=2.",
+      "when": "quote guests=3; либо capacity упала после quote на guests=2.",
+      "then": "Невалидный quote 400; устаревшая capacity при create 409, без записи.",
+      "expectedHttp": [
+        400,
+        409
+      ],
+      "expectedCodes": [
+        "VALIDATION_FAILED",
+        "CAPACITY_EXCEEDED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-12",
+      "name": "No public PII",
+      "operationIds": [
+        "searchHotels",
+        "getHotelBySlug",
+        "listHotelRooms",
+        "getPublicRoom"
+      ],
+      "given": "Есть брони разных владельцев.",
+      "when": "Анонимно прочитать все публичные DTO.",
+      "then": "Нет userId/email/guest data/bookings/unavailableDates; hidden/missing 404 одинаков.",
+      "expectedHttp": [
+        200,
+        404
+      ],
+      "expectedCodes": [
+        "NOT_FOUND"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-13",
+      "name": "Session rotation and expiration",
+      "operationIds": [
+        "getCsrf",
+        "login",
+        "getSession",
+        "logout"
+      ],
+      "given": "Анонимная CSRF session.",
+      "when": "Login, проверить старый session/token; idle30m и absolute12h; logout.",
+      "then": "ID/CSRF меняются, старые не авторизуют; expired401, logout204; cookie Secure,HttpOnly,Lax,Path=/,без Domain.",
+      "expectedHttp": [
+        200,
+        204,
+        401,
+        403
+      ],
+      "expectedCodes": [
+        "AUTHENTICATION_REQUIRED",
+        "CSRF_INVALID"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-14",
+      "name": "Every unsafe v2 requires CSRF",
+      "operationIds": [
+        "login",
+        "registerRestrictedDemoAccount",
+        "quoteBooking",
+        "createBooking",
+        "cancelOwnBooking",
+        "fenceUnknownBookingOperation",
+        "logout"
+      ],
+      "given": "Cookie и/или Basic header, JSON либо no-body.",
+      "when": "POST без/с истёкшим token, с чужим Origin.",
+      "then": "Нет bypass по Content-Type/Basic/отсутствию Origin; 403 и ноль записей.",
+      "expectedHttp": [
+        403
+      ],
+      "expectedCodes": [
+        "CSRF_INVALID"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-15",
+      "name": "No Basic fallback on v2",
+      "operationIds": [
+        "getSession",
+        "createBooking"
+      ],
+      "given": "Валидный Basic, отсутствует authenticated v2 session.",
+      "when": "Попытка прочитать me или создать.",
+      "then": "401 без browser Basic challenge и без записи.",
+      "expectedHttp": [
+        401
+      ],
+      "expectedCodes": [
+        "AUTHENTICATION_REQUIRED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-16",
+      "name": "Login anti-enumeration and limits",
+      "operationIds": [
+        "login"
+      ],
+      "given": "Существующий/несуществующий username.",
+      "when": "Ошибочный пароль; превысить 5 failed/account+source/15m либо30/source/15m.",
+      "then": "Одинаковый INVALID_CREDENTIALS; затем429 Retry-After; пароли/username input не логируются.",
+      "expectedHttp": [
+        401,
+        429
+      ],
+      "expectedCodes": [
+        "INVALID_CREDENTIALS",
+        "RATE_LIMITED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-17",
+      "name": "Signup gate is server enforced",
+      "operationIds": [
+        "getCsrf",
+        "registerRestrictedDemoAccount"
+      ],
+      "given": "Public CLOSED; отдельно isolated TEST_ONLY.",
+      "when": "POST register с валидным CSRF в обоих режимах.",
+      "then": "CLOSED403 без account lookup; TEST_ONLY201 USER,emailVerified=false,не login и не обещание письма.",
+      "expectedHttp": [
+        403,
+        201
+      ],
+      "expectedCodes": [
+        "REGISTRATION_CLOSED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-18",
+      "name": "Password UTF-8 and safe error",
+      "operationIds": [
+        "registerRestrictedDemoAccount"
+      ],
+      "given": "TEST_ONLY.",
+      "when": "36/37 кириллических символов, 18/19 emoji,73 ASCII, malformed password JSON.",
+      "then": "72bytes проходит при прочих условиях; >72bytes400, тело/логи не содержат rejected password.",
+      "expectedHttp": [
+        201,
+        400
+      ],
+      "expectedCodes": [
+        "VALIDATION_FAILED",
+        "MALFORMED_JSON"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-19",
+      "name": "QUOTE same-key retry does not renew",
+      "operationIds": [
+        "quoteBooking"
+      ],
+      "given": "Успешный quote в 09:00, expires09:10.",
+      "when": "С тем же key/body в09:05 и09:11; с другим body; после24h.",
+      "then": "09:05 тот же token/expiry;09:11 QUOTE_EXPIRED; иной body конфликт; после24h новый расчёт может быть создан, но не бронь.",
+      "expectedHttp": [
+        201,
+        409
+      ],
+      "expectedCodes": [
+        "QUOTE_EXPIRED",
+        "IDEMPOTENCY_CONFLICT"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-20",
+      "name": "Quote has no hold",
+      "operationIds": [
+        "quoteBooking",
+        "createBooking"
+      ],
+      "given": "Два пользователя получили quote одной комнаты.",
+      "when": "Оба одновременно подтверждают с разными create keys.",
+      "then": "Только одна пересекающаяся CONFIRMED; второй ROOM_UNAVAILABLE, одна success receipt/outbox запись на победителя.",
+      "expectedHttp": [
+        201,
+        409
+      ],
+      "expectedCodes": [
+        "ROOM_UNAVAILABLE"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-21",
+      "name": "Price changes require reconfirmation",
+      "operationIds": [
+        "createBooking",
+        "quoteBooking"
+      ],
+      "given": "Цена5000→5500 между quote и create.",
+      "when": "Отправить старый quote; затем без согласия пытаться заменить token в том же key.",
+      "then": "409 PRICE_CHANGED+replacementQuote,ноль броней; замена token→IDEMPOTENCY_CONFLICT; только явное новое подтверждение/новый key создаёт.",
+      "expectedHttp": [
+        409,
+        201
+      ],
+      "expectedCodes": [
+        "PRICE_CHANGED",
+        "IDEMPOTENCY_CONFLICT"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-22",
+      "name": "Terms and hidden catalog change",
+      "operationIds": [
+        "createBooking"
+      ],
+      "given": "После quote поменялись TZ/deadline/name snapshot/capacity либо sale flag.",
+      "when": "Подтвердить прежние условия.",
+      "then": "Нет молчаливого нового snapshot; TERMS_CHANGED либо соответствующий capacity/room-not-bookable конфликт.",
+      "expectedHttp": [
+        409
+      ],
+      "expectedCodes": [
+        "TERMS_CHANGED",
+        "CAPACITY_EXCEEDED",
+        "ROOM_NOT_BOOKABLE"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-23",
+      "name": "Quote expires while waiting for lock",
+      "operationIds": [
+        "createBooking"
+      ],
+      "given": "Quote истекает до освобождения Room lock.",
+      "when": "Запрос пришёл до expiry, lock получен после expiry.",
+      "then": "409 QUOTE_EXPIRED; ни booking, ни success receipt, ни outbox.",
+      "expectedHttp": [
+        409
+      ],
+      "expectedCodes": [
+        "QUOTE_EXPIRED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-24",
+      "name": "Owner token and selection binding",
+      "operationIds": [
+        "createBooking"
+      ],
+      "given": "Token выдан другому user либо другой selection.",
+      "when": "Поддельный token, затем чужой token, затем несовпадающие dates/guests.",
+      "then": "QUOTE_INVALID скрывает владельца; selection mismatch409; userId unknown field400.",
+      "expectedHttp": [
+        409,
+        400
+      ],
+      "expectedCodes": [
+        "QUOTE_INVALID",
+        "QUOTE_SELECTION_MISMATCH",
+        "VALIDATION_FAILED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-25",
+      "name": "Durable same-payload create replay",
+      "operationIds": [
+        "createBooking"
+      ],
+      "given": "POST committed, ответ потерян, затем рестарт приложения/смена session того же owner.",
+      "when": "Повтор original key/body.",
+      "then": "Исходный201 immutable receipt и Location, Idempotency-Replayed=true; ровно одна booking.",
+      "expectedHttp": [
+        201
+      ],
+      "expectedCodes": [],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-26",
+      "name": "Header-only success replay after quote deletion",
+      "operationIds": [
+        "createBooking",
+        "getBookingOperation"
+      ],
+      "given": "Успех committed; через25h quote record удалён, browser потерял token/body.",
+      "when": "POST с session,CSRF,исходным header key и БЕЗ тела; GET result тем же header.",
+      "then": "Исходный201 receipt либо200 SUCCEEDED без quote validation; новой записи нет.",
+      "expectedHttp": [
+        201,
+        200
+      ],
+      "expectedCodes": [],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-27",
+      "name": "Idempotency includes quote token",
+      "operationIds": [
+        "createBooking"
+      ],
+      "given": "Известный ключ и первоначальный полный payload.",
+      "when": "Изменить только quoteToken на свежий, даже с теми же selection/ценой.",
+      "then": "409 IDEMPOTENCY_CONFLICT, никакого нового write.",
+      "expectedHttp": [
+        409
+      ],
+      "expectedCodes": [
+        "IDEMPOTENCY_CONFLICT"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-28",
+      "name": "Idempotency owner and operation scope",
+      "operationIds": [
+        "quoteBooking",
+        "createBooking",
+        "getBookingOperation"
+      ],
+      "given": "Два владельца/два namespace используют один UUID.",
+      "when": "QUOTE и CREATE, затем другой user lookup.",
+      "then": "Scope(user,operation,key) раздельны; чужой result404 без сведений; admin/me не читает чужой key.",
+      "expectedHttp": [
+        201,
+        200,
+        404
+      ],
+      "expectedCodes": [
+        "NOT_FOUND"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-29",
+      "name": "Immutable receipt is not current status",
+      "operationIds": [
+        "createBooking",
+        "cancelOwnBooking",
+        "getOwnBooking"
+      ],
+      "given": "Бронь создана, затем отменена.",
+      "when": "Replay исходного CREATE; прочитать bookingUrl.",
+      "then": "Receipt statusAtCreation=CONFIRMED неизменен; текущая бронь CANCELLED, не новая CONFIRMED.",
+      "expectedHttp": [
+        201,
+        200
+      ],
+      "expectedCodes": [],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-30",
+      "name": "Accepted PROCESSING and crash recovery",
+      "operationIds": [
+        "createBooking",
+        "getBookingOperation"
+      ],
+      "given": "Durable reservation; процесс падает до/после атомарного commit.",
+      "when": "Lease30s, recovery пытается operation lock.",
+      "then": "Активный txn остаётсяPROCESSING; committed даётSUCCEEDED; доказанный rollback→FAILED REQUEST_ABORTED, без фонового создания.",
+      "expectedHttp": [
+        409,
+        200,
+        503
+      ],
+      "expectedCodes": [
+        "OPERATION_IN_PROGRESS",
+        "REQUEST_ABORTED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-31",
+      "name": "404 is not permission for new key",
+      "operationIds": [
+        "getBookingOperation",
+        "createBooking"
+      ],
+      "given": "Исходный HTTP request задержан до unique reservation.",
+      "when": "GET result→404, повтор original key, не новый key.",
+      "then": "Поздняя/повторная запись встречаются на UNIQUE; не более одной booking; неизвестный исход не называется failure.",
+      "expectedHttp": [
+        404,
+        201,
+        409
+      ],
+      "expectedCodes": [
+        "NOT_FOUND",
+        "OPERATION_IN_PROGRESS"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-32",
+      "name": "Fence absent operation before late request",
+      "operationIds": [
+        "fenceUnknownBookingOperation",
+        "createBooking"
+      ],
+      "given": "После404 потерян quote/body; исходный POST ещё может прийти.",
+      "when": "Explicit fence оригинального key, затем поздний POST.",
+      "then": "Fence атомарно FAILED REQUEST_ABORTED; поздний POST503,нетbooking; новое подтверждение может иметь новый key.",
+      "expectedHttp": [
+        200,
+        503
+      ],
+      "expectedCodes": [
+        "REQUEST_ABORTED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-33",
+      "name": "Fence/create reservation race",
+      "operationIds": [
+        "fenceUnknownBookingOperation",
+        "createBooking"
+      ],
+      "given": "Два отдельных потока, один owner/key.",
+      "when": "Параллельно unique reservation и fence.",
+      "then": "Либо create уже PROCESSING/SUCCEEDED и fence его не отменяет, либо tombstone выигрывает и блокирует create; невозможны tombstoneFAILED+committed booking.",
+      "expectedHttp": [
+        200,
+        201,
+        409,
+        503
+      ],
+      "expectedCodes": [
+        "OPERATION_IN_PROGRESS",
+        "REQUEST_ABORTED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-34",
+      "name": "Failure retention and key tombstone",
+      "operationIds": [
+        "getBookingOperation",
+        "createBooking"
+      ],
+      "given": "Терминальный known failure старше7дней.",
+      "when": "GET result и replay старого key.",
+      "then": "error=null в status, original errorCode/status/fingerprint сохранены; старыйkey не свободен и не создаёт.",
+      "expectedHttp": [
+        200,
+        409,
+        503
+      ],
+      "expectedCodes": [
+        "ROOM_UNAVAILABLE",
+        "REQUEST_ABORTED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-35",
+      "name": "Atomicity with outbox and receipt",
+      "operationIds": [
+        "createBooking"
+      ],
+      "given": "Искусственный отказ DB/outbox внутри txn.",
+      "when": "Откатить до commit; отдельно потерять HTTP после commit.",
+      "then": "Первый:нет booking/outbox/successreceipt; второй:все три committed и recoverable; никогда partial success.",
+      "expectedHttp": [
+        500,
+        503,
+        200
+      ],
+      "expectedCodes": [],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-36",
+      "name": "Own scope vs admin scope",
+      "operationIds": [
+        "listOwnBookings",
+        "getOwnBooking",
+        "listAdminBookings",
+        "getAdminBooking",
+        "cancelOwnBooking"
+      ],
+      "given": "USER/ADMIN и чужая/отсутствующая booking.",
+      "when": "Читать /me чужую, admin list и cancel чужой.",
+      "then": "Чужая/missing404 одинаковы, admin/me только свои, /admin USER403, ADMIN read всех без права чужой отмены.",
+      "expectedHttp": [
+        200,
+        403,
+        404
+      ],
+      "expectedCodes": [
+        "FORBIDDEN",
+        "NOT_FOUND"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-37",
+      "name": "Snapshot is historical",
+      "operationIds": [
+        "createBooking",
+        "getOwnBooking"
+      ],
+      "given": "Создана v2 бронь, после неё admin меняет цену/name/address/TZ.",
+      "when": "Прочитать старую бронь.",
+      "then": "Сохранены прежние pricing/snapshot/deadline, текущий каталог не переписывает подтверждение.",
+      "expectedHttp": [
+        201,
+        200
+      ],
+      "expectedCodes": [],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-38",
+      "name": "Cancellation exact boundary",
+      "operationIds": [
+        "cancelOwnBooking"
+      ],
+      "given": "checkIn10Nov, TZ Europe/Moscow,deadline9Nov21:00Z.",
+      "when": "Сервер за1ns доdeadline, ровноdeadline, послеdeadline.",
+      "then": "До допустимо, ровно/после409 CANCELLATION_CLOSED; browserTZ неважен.",
+      "expectedHttp": [
+        200,
+        409
+      ],
+      "expectedCodes": [
+        "CANCELLATION_CLOSED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-39",
+      "name": "Repeated cancel and no restoration",
+      "operationIds": [
+        "cancelOwnBooking",
+        "getOwnBooking"
+      ],
+      "given": "Бронь ужеCANCELLED доdeadline.",
+      "when": "Повтор послеdeadline, затем GET.",
+      "then": "200 та же CANCELLED/оригинальный cancelledAt; не delete и не restore.",
+      "expectedHttp": [
+        200
+      ],
+      "expectedCodes": [],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-40",
+      "name": "Cancel/create/price room serialization",
+      "operationIds": [
+        "cancelOwnBooking",
+        "createBooking"
+      ],
+      "given": "CONFIRMED занимает период, конкурентны отмена/новаябронь/pricechange.",
+      "when": "Разные транзакции с общим roomlock.",
+      "then": "Либо create видит занятость, либо aftercancel свободно и актуальная цена; нет пересечений/тихой смены цены.",
+      "expectedHttp": [
+        200,
+        201,
+        409
+      ],
+      "expectedCodes": [
+        "ROOM_UNAVAILABLE",
+        "PRICE_CHANGED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-41",
+      "name": "Legacy facts unknown",
+      "operationIds": [
+        "getOwnBooking",
+        "cancelOwnBooking"
+      ],
+      "given": "Строкаv1 без сохранённых guests/price/snapshot/TZ/createdAt.",
+      "when": "Миграция/read/cancel.",
+      "then": "originLEGACY; фактыnull;CONFIRMED блокирует; canCancelfalse+LEGACY_TIMEZONE_UNKNOWN; никакой сегодняшней historical price.",
+      "expectedHttp": [
+        200,
+        409
+      ],
+      "expectedCodes": [
+        "LEGACY_TIMEZONE_UNKNOWN"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-42",
+      "name": "Verified legacy timezone",
+      "operationIds": [
+        "getOwnBooking",
+        "cancelOwnBooking"
+      ],
+      "given": "Оператор явно проверил TZ конкретнойlegacyброни, audit=MIGRATION_VERIFIED.",
+      "when": "Сохранить deadline и отменить до/после него.",
+      "then": "Цена/snapshot/createdAt остаютсяnull; доdeadline200,позжеCANCELLATION_CLOSED; безпроверкиgateнеоткрыт.",
+      "expectedHttp": [
+        200,
+        409
+      ],
+      "expectedCodes": [
+        "CANCELLATION_CLOSED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-43",
+      "name": "History survives hide/delete/cancel",
+      "operationIds": [
+        "getOwnBooking"
+      ],
+      "given": "ЕстьCONFIRMED илиCANCELLED history.",
+      "when": "Admin скрывает, затем пытается удалитьroom/hotel.",
+      "then": "Новыеquote невыдаются, свояисториячитается, физическоеудаление запрещено; newAPI не выдумывает mutation endpoint.",
+      "expectedHttp": [
+        200
+      ],
+      "expectedCodes": [],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-44",
+      "name": "v1/v2 cookie and auth chain separation",
+      "operationIds": [],
+      "given": "Работают изолированные matcher chains, одна browser cookie приходит на оба prefix.",
+      "when": "Cookie-only→v1;Basic+cookie/Origin→v1unsafe;Basic-only→v2.",
+      "then": "v1cookie-only401;browserv1unsafe403;v2Basic-only401; никакого CSRF обхода/общего SecurityContext fallback.",
+      "expectedHttp": [
+        401,
+        403
+      ],
+      "expectedCodes": [
+        "AUTHENTICATION_REQUIRED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-45",
+      "name": "Legacy ingress and old write cutoff",
+      "operationIds": [],
+      "given": "Планируется public v2 writes.",
+      "when": "Проверить v1register/v1POSTbookings и все overlap queries/constraints.",
+      "then": "Legacy publicsignup закрыт; oldcreate410 послеcutover, не adapter с выдуманными guests/price; CANCELLED во всех активных reads не блокирует.",
+      "expectedHttp": [
+        403,
+        410
+      ],
+      "expectedCodes": [],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-46",
+      "name": "No private cache and safe diagnostics",
+      "operationIds": [
+        "getSession",
+        "getOwnBooking",
+        "getCsrf",
+        "searchHotels"
+      ],
+      "given": "Ответы200/4xx/5xx, затемlogout/другойаккаунт.",
+      "when": "Проверить cache headers,traceId,error/logs и clientcache.",
+      "then": "private,no-store,VaryCookie;новыйtraceнаretry;нет токенов/паролей/чужихPII;старый кабинет не виден послеlogout.",
+      "expectedHttp": [
+        200,
+        204,
+        400,
+        401,
+        403,
+        404,
+        409,
+        500,
+        503
+      ],
+      "expectedCodes": [],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-47",
+      "name": "Reauthentication never automatically books",
+      "operationIds": [
+        "getSession",
+        "getBookingOperation",
+        "quoteBooking",
+        "createBooking"
+      ],
+      "given": "Session истекла после отправки или до review.",
+      "when": "Login с сохранённым несекретным выбором.",
+      "then": "Послеотправки сначала originalkey lookup; доотправки новыйquote/review; записьтолько после явного подтверждения.",
+      "expectedHttp": [
+        401,
+        200,
+        201
+      ],
+      "expectedCodes": [
+        "AUTHENTICATION_REQUIRED"
+      ],
+      "status": "requirement-not-executed"
+    },
+    {
+      "id": "AC-48",
+      "name": "Delayed worker cannot resurrect terminal recovery result",
+      "operationIds": [
+        "createBooking",
+        "getBookingOperation"
+      ],
+      "given": "Worker получил PROCESSING reservation, но остановлен до рабочей транзакции; после30s recovery под operation lock доказал отсутствие booking и сохранил FAILED REQUEST_ABORTED.",
+      "when": "Исходный slow worker просыпается, берёт operation row lock и пытается продолжить; отдельно повторить гонку с уже SUCCEEDED row.",
+      "then": "Worker перечитывает state/attemptToken/lease: terminal FAILED/SUCCEEDED прекращает создание. Нет FAILED→PROCESSING/CONFIRMED, booking/outbox не возникают для REQUEST_ABORTED; success receipt не перезаписывается. Если lease истёк до старта и recovery ещё не пришёл, worker сам не начинает create.",
+      "expectedHttp": [
+        503,
+        201,
+        200
+      ],
+      "expectedCodes": [
+        "REQUEST_ABORTED"
+      ],
+      "status": "requirement-not-executed"
+    }
+  ]
+}

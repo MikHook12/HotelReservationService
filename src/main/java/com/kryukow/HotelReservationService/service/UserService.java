@@ -142,7 +142,7 @@ public class UserService {
     @Transactional
     public UserResponseDto create(UserCreateUpdateRequestDto request) {
         validatePasswordLength(request.getPassword());
-        log.info("Регистрация нового пользователя: {}", request.getEmail());
+        log.info("Регистрация нового пользователя");
 
         if (userRepository.existsByName(request.getName())) {
             throw new ResourceConflictException("Username already exists");

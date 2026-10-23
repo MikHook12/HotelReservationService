@@ -3,6 +3,7 @@ package com.kryukow.HotelReservationService.kafka;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kryukow.HotelReservationService.dto.event.BookingCreatedEvent;
+import com.kryukow.HotelReservationService.dto.event.BookingCancelledEvent;
 import com.kryukow.HotelReservationService.dto.event.UserRegisteredEvent;
 import com.kryukow.HotelReservationService.model.OutboxEvent;
 import com.kryukow.HotelReservationService.repository.OutboxEventRepository;
@@ -76,6 +77,7 @@ public class OutboxEventDispatcher {
         return switch (event.getEventType()) {
             case USER_REGISTERED -> objectMapper.readValue(event.getPayload(), UserRegisteredEvent.class);
             case BOOKING_CREATED -> objectMapper.readValue(event.getPayload(), BookingCreatedEvent.class);
+            case BOOKING_CANCELLED -> objectMapper.readValue(event.getPayload(), BookingCancelledEvent.class);
         };
     }
 }

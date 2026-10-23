@@ -1,6 +1,7 @@
 package com.kryukow.HotelReservationService.kafka;
 
 import com.kryukow.HotelReservationService.dto.event.BookingCreatedEvent;
+import com.kryukow.HotelReservationService.dto.event.BookingCancelledEvent;
 import com.kryukow.HotelReservationService.dto.event.UserRegisteredEvent;
 import com.kryukow.HotelReservationService.model.EventType;
 import com.kryukow.HotelReservationService.model.StatisticEvent;
@@ -37,7 +38,7 @@ class StatisticsEventListenerTest {
     void bookingKeepsNumericIdsAndStoresDatesInIsoFormat() {
         LocalDate date = LocalDate.of(2027, 1, 2);
         BookingCreatedEvent event = new BookingCreatedEvent(42L, 7L, date, date.plusDays(2), LocalDateTime.now());
-        listener.handlerBookingRegistered(event, "booking-outbox-id");
+        listener.handleBookingEvent(event, "booking-outbox-id");
         ArgumentCaptor<StatisticEvent> captor = ArgumentCaptor.forClass(StatisticEvent.class);
         verify(repository).save(captor.capture());
         assertThat(captor.getValue().getId()).isEqualTo("booking-outbox-id");
@@ -51,4 +52,32 @@ class StatisticsEventListenerTest {
                 .isInstanceOf(IllegalArgumentException.class);
         verifyNoInteractions(repository);
     }
+
+    @Test
+    void cancellationIsIdempotentByEventKeyAndCannotBeClassifiedAsBookingCreated() {
+        LocalDate date = LocalDate.of(2027, 1, 2);
+        BookingCancelledEvent event = new BookingCancelledEvent(99L, 42L, 7L, date, date.plusDays(2),
+                LocalDateTime.of(2026, 12, 1, 10, 30));
+        listener.handleBookingEvent(event, "cancellation-outbox-id");
+        listener.handleBookingEvent(event, "cancellation-outbox-id");
+        ArgumentCaptor<StatisticEvent> captor = ArgumentCaptor.forClass(StatisticEvent.class);
+        verify(repository, times(2)).save(captor.capture());
+        assertThat(captor.getAllValues()).allSatisfy(stat -> {
+            assertThat(stat.getId()).isEqualTo("cancellation-outbox-id");
+            assertThat(stat.getEventType()).isEqualTo(EventType.BOOKING_CANCELLED);
+            assertThat(stat.getPayload()).containsEntry("bookingId", 99L).containsEntry("schemaVersion", 1)
+                    .containsEntry("userId", 42L).containsEntry("roomId", 7L)
+                    .containsEntry("checkInDate", "2027-01-02").containsEntry("checkOutDate", "2027-01-04")
+                    .doesNotContainKeys("revenue", "payment", "amount");
+            assertThat(stat.getTimestamp()).isEqualTo(event.timestamp());
+        });
+    }
+
+    @Test
+    void unsupportedBookingTopicPayloadIsRejectedInsteadOfCountedAsACreation() {
+        assertThatThrownBy(() -> listener.handleBookingEvent(new UserRegisteredEvent(1L, LocalDateTime.now()), "id"))
+                .isInstanceOf(IllegalArgumentException.class);
+        verifyNoInteractions(repository);
+    }
+
 }

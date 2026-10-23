@@ -33,3 +33,8 @@ build/
 .vscode/
 .env
 application-local.yml
+
+# Persistent local runtime: secrets, logs and the runnable jar.
+.local/
+# This checked-in profile has placeholders only; personal local YAML stays ignored.
+!src/main/resources/application-local.yml

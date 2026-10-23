@@ -1,0 +1,3 @@
+#!/bin/sh
+# Keep startup and shutdown logic in the cross-platform Node entry point.
+exec node "$(dirname "$0")/scripts/local.mjs" "$@"

@@ -1,0 +1,643 @@
+{
+  "note": "Design fixtures, no live credentials/inventory; dates relative to 2026-10-20 evaluatedAt.",
+  "examples": [
+    {
+      "name": "stay",
+      "schema": "#/components/schemas/QuoteRequest",
+      "value": {
+        "roomId": "101",
+        "checkInDate": "2026-11-10",
+        "checkOutDate": "2026-11-12",
+        "guests": 2
+      }
+    },
+    {
+      "name": "quote",
+      "schema": "#/components/schemas/Quote",
+      "value": {
+        "quoteToken": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "stay": {
+          "roomId": "101",
+          "checkInDate": "2026-11-10",
+          "checkOutDate": "2026-11-12",
+          "guests": 2
+        },
+        "pricing": {
+          "nightlyPrice": "5000.00",
+          "nights": 2,
+          "totalPrice": "10000.00",
+          "currency": "RUB",
+          "feesIncluded": true
+        },
+        "snapshot": {
+          "hotelId": "10",
+          "hotelName": "Демо: Северный свет",
+          "hotelSlug": "demo-severny-svet",
+          "roomId": "101",
+          "roomName": "Двухместная",
+          "hotelAddress": "Условный адрес, 1",
+          "cityName": "Москва",
+          "timeZone": "Europe/Moscow",
+          "isDemo": true
+        },
+        "termsVersion": "room-101:price-7:terms-1",
+        "createdAt": "2026-10-20T09:00:00Z",
+        "expiresAt": "2026-10-20T09:10:00Z",
+        "cancellationDeadlineAt": "2026-11-09T21:00:00Z",
+        "holdsRoom": false
+      }
+    },
+    {
+      "name": "create",
+      "schema": "#/components/schemas/CreateBookingRequest",
+      "value": {
+        "roomId": "101",
+        "checkInDate": "2026-11-10",
+        "checkOutDate": "2026-11-12",
+        "guests": 2,
+        "quoteToken": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      }
+    },
+    {
+      "name": "receipt",
+      "schema": "#/components/schemas/BookingCreationReceipt",
+      "value": {
+        "bookingId": "9001",
+        "statusAtCreation": "CONFIRMED",
+        "createdAt": "2026-10-20T09:02:00Z",
+        "stay": {
+          "roomId": "101",
+          "checkInDate": "2026-11-10",
+          "checkOutDate": "2026-11-12",
+          "guests": 2
+        },
+        "pricing": {
+          "nightlyPrice": "5000.00",
+          "nights": 2,
+          "totalPrice": "10000.00",
+          "currency": "RUB",
+          "feesIncluded": true
+        },
+        "snapshot": {
+          "hotelId": "10",
+          "hotelName": "Демо: Северный свет",
+          "hotelSlug": "demo-severny-svet",
+          "roomId": "101",
+          "roomName": "Двухместная",
+          "hotelAddress": "Условный адрес, 1",
+          "cityName": "Москва",
+          "timeZone": "Europe/Moscow",
+          "isDemo": true
+        },
+        "cancellationDeadlineAt": "2026-11-09T21:00:00Z",
+        "bookingUrl": "/api/v2/me/bookings/9001"
+      }
+    },
+    {
+      "name": "booking",
+      "schema": "#/components/schemas/Booking",
+      "value": {
+        "id": "9001",
+        "roomId": "101",
+        "checkInDate": "2026-11-10",
+        "checkOutDate": "2026-11-12",
+        "status": "CONFIRMED",
+        "cancelledAt": null,
+        "cancellation": {
+          "canCancel": true,
+          "deadlineAt": "2026-11-09T21:00:00Z",
+          "timeZone": "Europe/Moscow",
+          "reason": null
+        },
+        "origin": "V2",
+        "guests": 2,
+        "pricing": {
+          "nightlyPrice": "5000.00",
+          "nights": 2,
+          "totalPrice": "10000.00",
+          "currency": "RUB",
+          "feesIncluded": true
+        },
+        "snapshot": {
+          "hotelId": "10",
+          "hotelName": "Демо: Северный свет",
+          "hotelSlug": "demo-severny-svet",
+          "roomId": "101",
+          "roomName": "Двухместная",
+          "hotelAddress": "Условный адрес, 1",
+          "cityName": "Москва",
+          "timeZone": "Europe/Moscow",
+          "isDemo": true
+        },
+        "createdAt": "2026-10-20T09:02:00Z"
+      }
+    },
+    {
+      "name": "cancelled",
+      "schema": "#/components/schemas/Booking",
+      "value": {
+        "id": "9001",
+        "roomId": "101",
+        "checkInDate": "2026-11-10",
+        "checkOutDate": "2026-11-12",
+        "status": "CANCELLED",
+        "cancelledAt": "2026-10-20T10:00:00Z",
+        "cancellation": {
+          "canCancel": false,
+          "deadlineAt": "2026-11-09T21:00:00Z",
+          "timeZone": "Europe/Moscow",
+          "reason": "ALREADY_CANCELLED"
+        },
+        "origin": "V2",
+        "guests": 2,
+        "pricing": {
+          "nightlyPrice": "5000.00",
+          "nights": 2,
+          "totalPrice": "10000.00",
+          "currency": "RUB",
+          "feesIncluded": true
+        },
+        "snapshot": {
+          "hotelId": "10",
+          "hotelName": "Демо: Северный свет",
+          "hotelSlug": "demo-severny-svet",
+          "roomId": "101",
+          "roomName": "Двухместная",
+          "hotelAddress": "Условный адрес, 1",
+          "cityName": "Москва",
+          "timeZone": "Europe/Moscow",
+          "isDemo": true
+        },
+        "createdAt": "2026-10-20T09:02:00Z"
+      }
+    },
+    {
+      "name": "legacyUnknown",
+      "schema": "#/components/schemas/Booking",
+      "value": {
+        "id": "41",
+        "roomId": "101",
+        "checkInDate": "2026-11-10",
+        "checkOutDate": "2026-11-12",
+        "status": "CONFIRMED",
+        "cancelledAt": null,
+        "cancellation": {
+          "canCancel": false,
+          "deadlineAt": null,
+          "timeZone": null,
+          "reason": "LEGACY_TIMEZONE_UNKNOWN"
+        },
+        "origin": "LEGACY",
+        "guests": null,
+        "pricing": null,
+        "snapshot": null,
+        "createdAt": null,
+        "currentCatalogDisplay": {
+          "hotelName": "Текущее имя отеля",
+          "roomName": "Текущее имя комнаты",
+          "source": "CURRENT_CATALOG"
+        }
+      }
+    },
+    {
+      "name": "csrf",
+      "schema": "#/components/schemas/CsrfInfo",
+      "value": {
+        "headerName": "X-CSRF-TOKEN",
+        "token": "demonstration-token-not-a-real-credential-0123456789",
+        "expiresAt": "2026-10-20T09:30:00Z",
+        "registrationMode": "CLOSED"
+      }
+    },
+    {
+      "name": "session",
+      "schema": "#/components/schemas/SessionInfo",
+      "value": {
+        "user": {
+          "id": "7",
+          "username": "demo-user",
+          "email": "demo@example.invalid",
+          "emailVerified": false,
+          "roles": [
+            "USER"
+          ],
+          "isRestrictedDemoAccount": true
+        },
+        "idleExpiresAt": "2026-10-20T09:30:00Z",
+        "absoluteExpiresAt": "2026-10-20T21:00:00Z"
+      }
+    },
+    {
+      "name": "hotelPage",
+      "schema": "#/components/schemas/HotelPage",
+      "value": {
+        "items": [
+          {
+            "id": "10",
+            "slug": "demo-severny-svet",
+            "name": "Демо: Северный свет",
+            "cityCode": "moscow",
+            "cityName": "Москва",
+            "timeZone": "Europe/Moscow",
+            "isDemo": true,
+            "photos": [],
+            "fromPrice": {
+              "nightlyPrice": "5000.00",
+              "nights": 2,
+              "totalPrice": "10000.00",
+              "currency": "RUB",
+              "feesIncluded": true
+            },
+            "availabilityEvaluated": true,
+            "matchedRoomCount": 1
+          }
+        ],
+        "page": 0,
+        "size": 20,
+        "totalElements": 1,
+        "totalPages": 1,
+        "sort": "priceAsc",
+        "evaluatedAt": "2026-10-20T09:00:00Z",
+        "warnings": []
+      }
+    },
+    {
+      "name": "roomPage",
+      "schema": "#/components/schemas/RoomPage",
+      "value": {
+        "items": [
+          {
+            "id": "101",
+            "hotelId": "10",
+            "hotelSlug": "demo-severny-svet",
+            "name": "Двухместная",
+            "description": "Вымышленная комната для демонстрации",
+            "capacity": 2,
+            "photos": [],
+            "pricing": {
+              "nightlyPrice": "5000.00",
+              "nights": 2,
+              "totalPrice": "10000.00",
+              "currency": "RUB",
+              "feesIncluded": true
+            },
+            "availability": "AVAILABLE",
+            "unavailableReason": null,
+            "dateLimits": {
+              "hotelToday": "2026-10-20",
+              "minCheckInDate": "2026-10-21",
+              "maxCheckOutDate": "2027-10-20",
+              "maxNights": 30,
+              "timeZone": "Europe/Moscow"
+            }
+          }
+        ],
+        "page": 0,
+        "size": 20,
+        "totalElements": 1,
+        "totalPages": 1,
+        "sort": "priceAsc",
+        "evaluatedAt": "2026-10-20T09:00:00Z"
+      }
+    },
+    {
+      "name": "cityList",
+      "schema": "#/components/schemas/CityList",
+      "value": {
+        "items": [
+          {
+            "code": "moscow",
+            "name": "Москва",
+            "timeZones": [
+              "Europe/Moscow"
+            ],
+            "dateLimits": [
+              {
+                "hotelToday": "2026-10-20",
+                "minCheckInDate": "2026-10-21",
+                "maxCheckOutDate": "2027-10-20",
+                "maxNights": 30,
+                "timeZone": "Europe/Moscow"
+              }
+            ]
+          }
+        ],
+        "evaluatedAt": "2026-10-20T09:00:00Z"
+      }
+    },
+    {
+      "name": "hotel",
+      "schema": "#/components/schemas/HotelDetail",
+      "value": {
+        "id": "10",
+        "slug": "demo-severny-svet",
+        "name": "Демо: Северный свет",
+        "cityCode": "moscow",
+        "cityName": "Москва",
+        "timeZone": "Europe/Moscow",
+        "isDemo": true,
+        "photos": [],
+        "description": "Вымышленный отель. Заселение не предусмотрено.",
+        "address": "Условный адрес, 1",
+        "demoLocation": null,
+        "dateLimits": {
+          "hotelToday": "2026-10-20",
+          "minCheckInDate": "2026-10-21",
+          "maxCheckOutDate": "2027-10-20",
+          "maxNights": 30,
+          "timeZone": "Europe/Moscow"
+        }
+      }
+    },
+    {
+      "name": "room",
+      "schema": "#/components/schemas/Room",
+      "value": {
+        "id": "101",
+        "hotelId": "10",
+        "hotelSlug": "demo-severny-svet",
+        "name": "Двухместная",
+        "description": "Вымышленная комната для демонстрации",
+        "capacity": 2,
+        "photos": [],
+        "pricing": {
+          "nightlyPrice": "5000.00",
+          "nights": 2,
+          "totalPrice": "10000.00",
+          "currency": "RUB",
+          "feesIncluded": true
+        },
+        "availability": "AVAILABLE",
+        "unavailableReason": null,
+        "dateLimits": {
+          "hotelToday": "2026-10-20",
+          "minCheckInDate": "2026-10-21",
+          "maxCheckOutDate": "2027-10-20",
+          "maxNights": 30,
+          "timeZone": "Europe/Moscow"
+        }
+      }
+    },
+    {
+      "name": "user",
+      "schema": "#/components/schemas/UserProfile",
+      "value": {
+        "id": "7",
+        "username": "demo-user",
+        "email": "demo@example.invalid",
+        "emailVerified": false,
+        "roles": [
+          "USER"
+        ],
+        "isRestrictedDemoAccount": true
+      }
+    },
+    {
+      "name": "processingOperation",
+      "schema": "#/components/schemas/OperationStatus",
+      "value": {
+        "key": "b084e56f-7abc-4e84-b9ae-493d102a38b9",
+        "operation": "CREATE_BOOKING",
+        "createdAt": "2026-10-20T09:00:00Z",
+        "state": "PROCESSING",
+        "nextCheckAfterSeconds": 2
+      }
+    },
+    {
+      "name": "succeededOperation",
+      "schema": "#/components/schemas/OperationStatus",
+      "value": {
+        "key": "b084e56f-7abc-4e84-b9ae-493d102a38b9",
+        "operation": "CREATE_BOOKING",
+        "createdAt": "2026-10-20T09:00:00Z",
+        "state": "SUCCEEDED",
+        "completedAt": "2026-10-20T09:02:00Z",
+        "receipt": {
+          "bookingId": "9001",
+          "statusAtCreation": "CONFIRMED",
+          "createdAt": "2026-10-20T09:02:00Z",
+          "stay": {
+            "roomId": "101",
+            "checkInDate": "2026-11-10",
+            "checkOutDate": "2026-11-12",
+            "guests": 2
+          },
+          "pricing": {
+            "nightlyPrice": "5000.00",
+            "nights": 2,
+            "totalPrice": "10000.00",
+            "currency": "RUB",
+            "feesIncluded": true
+          },
+          "snapshot": {
+            "hotelId": "10",
+            "hotelName": "Демо: Северный свет",
+            "hotelSlug": "demo-severny-svet",
+            "roomId": "101",
+            "roomName": "Двухместная",
+            "hotelAddress": "Условный адрес, 1",
+            "cityName": "Москва",
+            "timeZone": "Europe/Moscow",
+            "isDemo": true
+          },
+          "cancellationDeadlineAt": "2026-11-09T21:00:00Z",
+          "bookingUrl": "/api/v2/me/bookings/9001"
+        }
+      }
+    },
+    {
+      "name": "failedOperation",
+      "schema": "#/components/schemas/OperationStatus",
+      "value": {
+        "key": "b084e56f-7abc-4e84-b9ae-493d102a38b9",
+        "operation": "CREATE_BOOKING",
+        "createdAt": "2026-10-20T09:00:00Z",
+        "state": "FAILED",
+        "completedAt": "2026-10-20T09:02:00Z",
+        "errorCode": "ROOM_UNAVAILABLE",
+        "errorStatus": 409,
+        "error": {
+          "status": 409,
+          "code": "ROOM_UNAVAILABLE",
+          "message": "Комната недоступна на выбранные даты.",
+          "fieldErrors": [],
+          "traceId": "0123456789abcdef0123456789abcdef",
+          "details": {}
+        }
+      }
+    },
+    {
+      "name": "fencedOperation",
+      "schema": "#/components/schemas/OperationStatus",
+      "value": {
+        "key": "b084e56f-7abc-4e84-b9ae-493d102a38b9",
+        "operation": "CREATE_BOOKING",
+        "createdAt": "2026-10-20T09:00:00Z",
+        "state": "FAILED",
+        "completedAt": "2026-10-20T09:00:00Z",
+        "errorCode": "REQUEST_ABORTED",
+        "errorStatus": 503,
+        "error": {
+          "status": 503,
+          "code": "REQUEST_ABORTED",
+          "message": "Исходная операция не была выполнена. Подтвердите новый расчёт перед новой попыткой.",
+          "fieldErrors": [],
+          "traceId": "0123456789abcdef0123456789abcdef",
+          "details": {}
+        }
+      }
+    },
+    {
+      "name": "validation",
+      "schema": "#/components/schemas/ApiError",
+      "value": {
+        "status": 400,
+        "code": "VALIDATION_FAILED",
+        "message": "Проверьте поля запроса.",
+        "fieldErrors": [
+          {
+            "field": "guests",
+            "code": "OUT_OF_RANGE",
+            "message": "Число гостей превышает вместимость."
+          }
+        ],
+        "traceId": "0123456789abcdef0123456789abcdef",
+        "details": {}
+      }
+    },
+    {
+      "name": "priceChanged",
+      "schema": "#/components/schemas/ApiError",
+      "value": {
+        "status": 409,
+        "code": "PRICE_CHANGED",
+        "message": "Цена изменилась. Проверьте новый расчёт и подтвердите снова.",
+        "fieldErrors": [],
+        "traceId": "0123456789abcdef0123456789abcdef",
+        "details": {
+          "replacementQuote": {
+            "quoteToken": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "stay": {
+              "roomId": "101",
+              "checkInDate": "2026-11-10",
+              "checkOutDate": "2026-11-12",
+              "guests": 2
+            },
+            "pricing": {
+              "nightlyPrice": "5500.00",
+              "nights": 2,
+              "totalPrice": "11000.00",
+              "currency": "RUB",
+              "feesIncluded": true
+            },
+            "snapshot": {
+              "hotelId": "10",
+              "hotelName": "Демо: Северный свет",
+              "hotelSlug": "demo-severny-svet",
+              "roomId": "101",
+              "roomName": "Двухместная",
+              "hotelAddress": "Условный адрес, 1",
+              "cityName": "Москва",
+              "timeZone": "Europe/Moscow",
+              "isDemo": true
+            },
+            "termsVersion": "room-101:price-8:terms-1",
+            "createdAt": "2026-10-20T09:00:00Z",
+            "expiresAt": "2026-10-20T09:10:00Z",
+            "cancellationDeadlineAt": "2026-11-09T21:00:00Z",
+            "holdsRoom": false
+          }
+        }
+      }
+    },
+    {
+      "name": "roomUnavailable",
+      "schema": "#/components/schemas/ApiError",
+      "value": {
+        "status": 409,
+        "code": "ROOM_UNAVAILABLE",
+        "message": "Комната недоступна на выбранные даты.",
+        "fieldErrors": [],
+        "traceId": "0123456789abcdef0123456789abcdef",
+        "details": {}
+      }
+    },
+    {
+      "name": "quoteExpired",
+      "schema": "#/components/schemas/ApiError",
+      "value": {
+        "status": 409,
+        "code": "QUOTE_EXPIRED",
+        "message": "Расчёт истёк. Получите новый расчёт.",
+        "fieldErrors": [],
+        "traceId": "0123456789abcdef0123456789abcdef",
+        "details": {}
+      }
+    },
+    {
+      "name": "keyConflict",
+      "schema": "#/components/schemas/ApiError",
+      "value": {
+        "status": 409,
+        "code": "IDEMPOTENCY_CONFLICT",
+        "message": "Сначала проверьте результат исходной операции.",
+        "fieldErrors": [],
+        "traceId": "0123456789abcdef0123456789abcdef",
+        "details": {
+          "operationUrl": "/api/v2/me/booking-operations/result"
+        }
+      }
+    },
+    {
+      "name": "notFound",
+      "schema": "#/components/schemas/ApiError",
+      "value": {
+        "status": 404,
+        "code": "NOT_FOUND",
+        "message": "Объект не найден.",
+        "fieldErrors": [],
+        "traceId": "0123456789abcdef0123456789abcdef",
+        "details": {}
+      }
+    },
+    {
+      "name": "cancelClosed",
+      "schema": "#/components/schemas/ApiError",
+      "value": {
+        "status": 409,
+        "code": "CANCELLATION_CLOSED",
+        "message": "Срок отмены истёк.",
+        "fieldErrors": [],
+        "traceId": "0123456789abcdef0123456789abcdef",
+        "details": {}
+      }
+    },
+    {
+      "name": "registrationClosed",
+      "schema": "#/components/schemas/ApiError",
+      "value": {
+        "status": 403,
+        "code": "REGISTRATION_CLOSED",
+        "message": "Публичная регистрация пока закрыта.",
+        "fieldErrors": [],
+        "traceId": "0123456789abcdef0123456789abcdef",
+        "details": {}
+      }
+    },
+    {
+      "name": "processing",
+      "schema": "#/components/schemas/ApiError",
+      "value": {
+        "status": 409,
+        "code": "OPERATION_IN_PROGRESS",
+        "message": "Результат операции ещё проверяется.",
+        "fieldErrors": [],
+        "traceId": "0123456789abcdef0123456789abcdef",
+        "details": {
+          "retryAfterSeconds": 2,
+          "operationUrl": "/api/v2/me/booking-operations/result"
+        }
+      }
+    }
+  ]
+}

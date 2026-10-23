@@ -57,6 +57,7 @@ public class RoomSpecification {
                 bookingSubquery.select(bookingRoot.get("id"));
                 bookingSubquery.where(
                         cb.equal(bookingRoot.get("room"), root),
+                        cb.equal(bookingRoot.get("status"), "CONFIRMED"),
                         cb.lessThan(bookingRoot.get("checkInDate"), checkOutDate),
                         cb.greaterThan(bookingRoot.get("checkOutDate"), checkInDate)
                 );

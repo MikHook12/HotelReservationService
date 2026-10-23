@@ -33,6 +33,37 @@ class OutboxIntegrationTest extends BaseIntegrationTest {
     @Autowired PlatformTransactionManager transactionManager;
     @Autowired KafkaTemplate<String, Object> kafka;
     @Autowired ObjectMapper objectMapper;
+    @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    @Test
+    void futureEventIsSkippedUntilALaterPollFindsItDue() {
+        var tx = new TransactionTemplate(transactionManager);
+        UUID id = tx.execute(status -> {
+            repository.deleteAll();
+            publisher.publishUserRegistered(88L);
+            OutboxEvent event = repository.findAll().getFirst();
+            event.setNextAttemptAt(java.time.LocalDateTime.now(java.time.ZoneOffset.UTC).plusHours(1));
+            return event.getId();
+        });
+        @SuppressWarnings("unchecked")
+        KafkaTemplate<String, Object> acknowledged = org.mockito.Mockito.mock(KafkaTemplate.class);
+        org.mockito.Mockito.when(acknowledged.send(org.mockito.ArgumentMatchers.anyString(),
+                        org.mockito.ArgumentMatchers.eq(id.toString()), org.mockito.ArgumentMatchers.any()))
+                .thenReturn(CompletableFuture.completedFuture(org.mockito.Mockito.mock(org.springframework.kafka.support.SendResult.class)));
+        var dispatcher = new OutboxEventDispatcher(repository, acknowledged, objectMapper, transactionManager, 20, 5);
+
+        dispatcher.dispatch();
+        org.mockito.Mockito.verifyNoInteractions(acknowledged);
+        assertThat(repository.findById(id).orElseThrow().getPublishedAt()).isNull();
+
+        // Advance eligibility against the same database clock used by lockPendingBatch.
+        jdbc.update("UPDATE outbox_events SET next_attempt_at=(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')-INTERVAL '1 second' WHERE id=?", id);
+        dispatcher.dispatch();
+        org.mockito.Mockito.verify(acknowledged).send(org.mockito.ArgumentMatchers.eq("user-events"),
+                org.mockito.ArgumentMatchers.eq(id.toString()), org.mockito.ArgumentMatchers.any());
+        assertThat(repository.findById(id).orElseThrow().getPublishedAt()).isNotNull();
+        repository.deleteAll();
+    }
 
     @Test
     void refusesPublishingOutsideCallerTransaction() {
@@ -132,4 +163,21 @@ class OutboxIntegrationTest extends BaseIntegrationTest {
         assertThat(repository.findById(event.getId()).orElseThrow().getPublishedAt()).isNotNull();
         repository.deleteAll();
     }
+
+    @Test
+    void cancellationRequiresCallerTransactionAndRollsBackWithIt() {
+        LocalDate checkIn = LocalDate.of(2027, 1, 1);
+        assertThatThrownBy(() -> publisher.publishBookingCancelled(99L, 42L, 7L, checkIn, checkIn.plusDays(2)))
+                .isInstanceOf(IllegalTransactionStateException.class);
+        AtomicReference<UUID> eventId = new AtomicReference<>();
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            publisher.publishBookingCancelled(99L, 42L, 7L, checkIn, checkIn.plusDays(2));
+            eventId.set(repository.findAll().stream()
+                    .filter(event -> event.getEventType() == com.kryukow.HotelReservationService.model.EventType.BOOKING_CANCELLED)
+                    .findFirst().orElseThrow().getId());
+            status.setRollbackOnly();
+        });
+        assertThat(repository.findById(eventId.get())).isEmpty();
+    }
+
 }
